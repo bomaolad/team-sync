@@ -14,10 +14,12 @@ interface SettingsScreenProps {
   navigation: any;
 }
 
+import { useAppTheme } from '../../hooks/useAppTheme';
+
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   navigation,
 }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const { isDark, toggleTheme, colors } = useAppTheme();
   const [notifications, setNotifications] = useState({
     newTasks: true,
     statusChanges: true,
@@ -54,7 +56,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     showChevron,
     onPress,
   }: {
-    icon: string;
+    icon: React.ComponentProps<typeof Icon>['name'];
     title: string;
     value?: boolean;
     onToggle?: (val: boolean) => void;
@@ -69,7 +71,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         alignItems: 'center',
         paddingVertical: ApTheme.Spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: ApTheme.Color.border.light,
+        borderBottomColor: colors.border,
       }}
     >
       <View
@@ -93,14 +95,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           value={value}
           onValueChange={onToggle}
           trackColor={{
-            false: ApTheme.Color.border.light,
+            false: colors.border,
             true: ApTheme.Color.primary,
           }}
-          thumbColor={ApTheme.Color.white}
+          thumbColor={colors.text.light}
         />
       )}
       {showChevron && (
-        <Icon name="chevron-right" size={20} color={ApTheme.Color.text.muted} />
+        <Icon name="chevron-right" size={20} color={colors.text.muted} />
       )}
     </TouchableOpacity>
   );
@@ -126,10 +128,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <ApText size="lg" weight="semibold">
                 {user.name}
               </ApText>
-              <ApText size="sm" color={ApTheme.Color.text.secondary}>
+              <ApText size="sm" color={colors.text.secondary}>
                 {user.jobTitle}
               </ApText>
-              <ApText size="xs" color={ApTheme.Color.text.muted}>
+              <ApText size="xs" color={colors.text.muted}>
                 {user.email}
               </ApText>
             </View>
@@ -142,7 +144,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <ApText
           size="sm"
           weight="semibold"
-          color={ApTheme.Color.text.secondary}
+          color={colors.text.secondary}
           style={{ marginBottom: ApTheme.Spacing.sm }}
         >
           APPEARANCE
@@ -151,8 +153,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <SettingRow
             icon="moon"
             title="Dark Mode"
-            value={darkMode}
-            onToggle={setDarkMode}
+            value={isDark}
+            onToggle={() => toggleTheme()}
           />
         </ApCard>
 

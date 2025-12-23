@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, StatusBar, View, ViewProps } from 'react-native';
+import { StatusBar, View, ViewProps } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ApTheme } from './ApTheme';
 
 interface ApScreenProps extends ViewProps {
@@ -9,28 +10,37 @@ interface ApScreenProps extends ViewProps {
   className?: string;
 }
 
+import { useAppTheme } from '../hooks/useAppTheme';
+
 export const ApScreen: React.FC<ApScreenProps> = ({
   children,
-  backgroundColor = ApTheme.Color.background.light,
-  statusBarStyle = 'dark-content',
+  backgroundColor,
+  statusBarStyle,
   style,
   ...props
 }) => {
+  const { colors, isDark } = useAppTheme();
+
+  const resolvedBackgroundColor = backgroundColor || colors.background;
+  const resolvedStatusBarStyle =
+    statusBarStyle || (isDark ? 'light-content' : 'dark-content');
+
   return (
     <SafeAreaView
       style={[
         {
           flex: 1,
-          backgroundColor: backgroundColor,
+          backgroundColor: resolvedBackgroundColor,
         },
         style,
       ]}
       {...props}
     >
-      <StatusBar barStyle={statusBarStyle} backgroundColor={backgroundColor} />
-      <View style={{ flex: 1, paddingHorizontal: ApTheme.Spacing.md }}>
-        {children}
-      </View>
+      <StatusBar
+        barStyle={resolvedStatusBarStyle}
+        backgroundColor={resolvedBackgroundColor}
+      />
+      <View style={{ flex: 1, paddingHorizontal: 16 }}>{children}</View>
     </SafeAreaView>
   );
 };

@@ -16,6 +16,8 @@ interface ApModalProps extends Omit<ModalProps, 'visible'> {
   className?: string;
 }
 
+import { useAppTheme } from '../hooks/useAppTheme';
+
 export const ApModal: React.FC<ApModalProps> = ({
   visible,
   onClose,
@@ -25,6 +27,7 @@ export const ApModal: React.FC<ApModalProps> = ({
   transparent = true,
   ...props
 }) => {
+  const { colors } = useAppTheme();
   const isBottom = position === 'bottom';
 
   return (
@@ -47,7 +50,7 @@ export const ApModal: React.FC<ApModalProps> = ({
           <TouchableWithoutFeedback>
             <View
               style={{
-                backgroundColor: ApTheme.Color.surface.light,
+                backgroundColor: colors.surface,
                 borderRadius: isBottom
                   ? ApTheme.BorderRadius.xl
                   : ApTheme.BorderRadius.lg,

@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Icon from '@expo/vector-icons/Feather';
 import { ApTheme } from '../components';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 import { DashboardScreen } from '../screens/home';
 import { ProjectsListScreen, ProjectDetailScreen } from '../screens/projects';
@@ -30,15 +31,17 @@ const Stack = createNativeStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TabNavigator: React.FC = () => {
+  const { colors } = useAppTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: ApTheme.Color.primary,
-        tabBarInactiveTintColor: ApTheme.Color.text.muted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text.muted,
         tabBarStyle: {
-          backgroundColor: ApTheme.Color.surface.light,
-          borderTopColor: ApTheme.Color.border.light,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           paddingTop: 8,
           height: 60,
         },

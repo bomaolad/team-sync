@@ -19,6 +19,8 @@ interface ApInputProps extends TextInputProps {
   className?: string;
 }
 
+import { useAppTheme } from '../hooks/useAppTheme';
+
 export const ApInput: React.FC<ApInputProps> = ({
   label,
   error,
@@ -29,6 +31,7 @@ export const ApInput: React.FC<ApInputProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useAppTheme();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const isPassword = secureTextEntry !== undefined;
 
@@ -42,7 +45,7 @@ export const ApInput: React.FC<ApInputProps> = ({
         <ApText
           size="sm"
           weight="medium"
-          color={ApTheme.Color.text.secondary}
+          color={colors.text.secondary}
           style={{ marginBottom: ApTheme.Spacing.xs }}
         >
           {label}
@@ -52,11 +55,9 @@ export const ApInput: React.FC<ApInputProps> = ({
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          backgroundColor: ApTheme.Color.surface.light,
+          backgroundColor: colors.surface,
           borderWidth: 1,
-          borderColor: error
-            ? ApTheme.Color.danger
-            : ApTheme.Color.border.light,
+          borderColor: error ? ApTheme.Color.danger : colors.border,
           borderRadius: ApTheme.BorderRadius.md,
           paddingHorizontal: ApTheme.Spacing.md,
           height: 48,
@@ -66,18 +67,18 @@ export const ApInput: React.FC<ApInputProps> = ({
           <Icon
             name={leftIcon}
             size={20}
-            color={ApTheme.Color.text.muted}
+            color={colors.text.muted}
             style={{ marginRight: ApTheme.Spacing.sm }}
           />
         )}
         <TextInput
-          placeholderTextColor={ApTheme.Color.text.muted}
+          placeholderTextColor={colors.text.muted}
           secureTextEntry={isPassword ? !isPasswordVisible : false}
           style={[
             {
               flex: 1,
               fontSize: ApTheme.FontSize.md,
-              color: ApTheme.Color.text.primary,
+              color: colors.text.primary,
               paddingVertical: 0,
             },
             style,

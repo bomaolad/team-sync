@@ -9,6 +9,8 @@ interface ApCardProps extends ViewProps {
   className?: string;
 }
 
+import { useAppTheme } from '../hooks/useAppTheme';
+
 export const ApCard: React.FC<ApCardProps> = ({
   children,
   onPress,
@@ -17,6 +19,8 @@ export const ApCard: React.FC<ApCardProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useAppTheme();
+
   const paddingMap = {
     none: 0,
     sm: ApTheme.Spacing.sm,
@@ -25,7 +29,7 @@ export const ApCard: React.FC<ApCardProps> = ({
   };
 
   const cardStyle = {
-    backgroundColor: ApTheme.Color.surface.light,
+    backgroundColor: colors.surface,
     borderRadius: ApTheme.BorderRadius.lg,
     padding: paddingMap[padding],
     ...(elevated && {

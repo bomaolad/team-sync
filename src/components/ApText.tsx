@@ -10,10 +10,12 @@ interface ApTextProps extends TextProps {
   className?: string;
 }
 
+import { useAppTheme } from '../hooks/useAppTheme';
+
 export const ApText: React.FC<ApTextProps> = ({
   children,
   size = 'md',
-  color = ApTheme.Color.text.primary,
+  color,
   weight = 'normal',
   align = 'left',
   numberOfLines,
@@ -21,6 +23,9 @@ export const ApText: React.FC<ApTextProps> = ({
   style,
   ...props
 }) => {
+  const { colors } = useAppTheme();
+  const resolvedColor = color || colors.text.primary;
+
   const fontSizeMap = {
     xs: ApTheme.FontSize.xs,
     sm: ApTheme.FontSize.sm,
@@ -44,7 +49,7 @@ export const ApText: React.FC<ApTextProps> = ({
       style={[
         {
           fontSize: fontSizeMap[size],
-          color: color,
+          color: resolvedColor,
           fontWeight: fontWeightMap[weight],
           textAlign: align,
         },
