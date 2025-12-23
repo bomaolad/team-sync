@@ -8,7 +8,7 @@ import {
   ApCard,
   ApAvatar,
 } from '../../components';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from '@expo/vector-icons/Feather';
 
 interface SettingsScreenProps {
   navigation: any;

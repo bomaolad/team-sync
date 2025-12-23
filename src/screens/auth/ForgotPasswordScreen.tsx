@@ -13,7 +13,7 @@ import {
   ApButton,
   ApInput,
 } from '../../components';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from '@expo/vector-icons/Feather';
 
 interface ForgotPasswordScreenProps {
   navigation: any;

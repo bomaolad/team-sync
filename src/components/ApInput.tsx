@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { ApTheme } from './ApTheme';
 import { ApText } from './ApText';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from '@expo/vector-icons/Feather';
 
 interface ApInputProps extends TextInputProps {
   label?: string;

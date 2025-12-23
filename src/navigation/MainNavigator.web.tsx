@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Icon from '@expo/vector-icons/Feather';
 import { ApTheme } from '../components';
 
@@ -26,7 +26,7 @@ export type MainTabsParamList = {
   Settings: undefined;
 };
 
-const Stack = createNativeStackNavigator<MainStackParamList>();
+const Stack = createStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TabNavigator: React.FC = () => {
@@ -94,7 +94,6 @@ export const MainNavigator: React.FC = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen name="MainTabs" component={TabNavigator} />

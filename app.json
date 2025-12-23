@@ -1,4 +1,14 @@
 {
   "name": "TeamSyncApp",
-  "displayName": "TeamSyncApp"
+  "expo": {
+    "name": "TeamSyncApp",
+    "slug": "team-sync-app",
+    "version": "1.0.0",
+    "platforms": ["ios", "android", "web"],
+    "userInterfaceStyle": "automatic",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
 }

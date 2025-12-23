@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, TouchableOpacity, TextInput } from 'react-native';
 import { ApTheme, ApText, ApScreen, ApButton } from '../../components';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from '@expo/vector-icons/Feather';
 
 interface VerifyEmailScreenProps {
   navigation: any;

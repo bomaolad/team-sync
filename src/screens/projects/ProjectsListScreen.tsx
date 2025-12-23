@@ -10,7 +10,7 @@ import {
   ApFAB,
   ApInput,
 } from '../../components';
-import Icon from 'react-native-vector-icons/Feather';
+import Icon from '@expo/vector-icons/Feather';
 
 interface ProjectsListScreenProps {
   navigation: any;
