@@ -1,2 +1,3 @@
-export { ProjectsListScreen } from './ProjectsListScreen';
-export { ProjectDetailScreen } from './ProjectDetailScreen';
+export * from './ProjectsListScreen';
+export * from './ProjectDetailScreen';
+export * from './CreateProjectScreen';

@@ -1,1 +1,2 @@
-export { TaskDetailScreen } from './TaskDetailScreen';
+export * from './TaskDetailScreen';
+export * from './CreateTaskScreen';

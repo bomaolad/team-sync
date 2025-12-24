@@ -111,7 +111,9 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({
           {[0, 1, 2, 3].map(index => (
             <TextInput
               key={index}
-              ref={ref => (inputRefs.current[index] = ref)}
+              ref={ref => {
+                inputRefs.current[index] = ref;
+              }}
               style={{
                 width: 64,
                 height: 64,

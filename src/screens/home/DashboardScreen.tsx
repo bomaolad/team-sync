@@ -229,7 +229,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             </TouchableOpacity>
           </View>
 
-          {mockTasks.map(task => renderTaskItem({ item: task }))}
+          {mockTasks.map(task => (
+            <React.Fragment key={task.id}>
+              {renderTaskItem({ item: task })}
+            </React.Fragment>
+          ))}
         </View>
       </ApScrollView>
 
