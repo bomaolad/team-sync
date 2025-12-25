@@ -1,16 +1,30 @@
 import React from 'react';
-import { TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
-import { ApTheme } from './ApTheme';
+import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import Icon from '@expo/vector-icons/Feather';
+import { ApTheme } from './ApTheme';
+
+type IconName = React.ComponentProps<typeof Icon>['name'];
 
 interface ApFABProps extends TouchableOpacityProps {
-  icon?: string;
+  icon?: IconName;
   size?: 'sm' | 'md' | 'lg';
   color?: string;
   backgroundColor?: string;
   position?: 'bottom-right' | 'bottom-center' | 'bottom-left';
   className?: string;
 }
+
+const sizeConfig = {
+  sm: { button: 48, icon: 20 },
+  md: { button: 56, icon: 24 },
+  lg: { button: 64, icon: 28 },
+};
+
+const positionConfig = {
+  'bottom-right': { right: 16, bottom: 24 },
+  'bottom-center': { alignSelf: 'center' as const, bottom: 24 },
+  'bottom-left': { left: 16, bottom: 24 },
+};
 
 export const ApFAB: React.FC<ApFABProps> = ({
   icon = 'plus',
@@ -19,37 +33,20 @@ export const ApFAB: React.FC<ApFABProps> = ({
   backgroundColor = ApTheme.Color.primary,
   position = 'bottom-right',
   style,
+  className = '',
   ...props
 }) => {
-  const sizeMap = {
-    sm: { button: 48, icon: 20 },
-    md: { button: 56, icon: 24 },
-    lg: { button: 64, icon: 28 },
-  };
-
-  const positionStyles = {
-    'bottom-right': { right: ApTheme.Spacing.md, bottom: ApTheme.Spacing.lg },
-    'bottom-center': {
-      alignSelf: 'center' as const,
-      bottom: ApTheme.Spacing.lg,
-    },
-    'bottom-left': { left: ApTheme.Spacing.md, bottom: ApTheme.Spacing.lg },
-  };
-
-  const currentSize = sizeMap[size];
+  const config = sizeConfig[size];
 
   return (
     <TouchableOpacity
+      className={`absolute items-center justify-center rounded-full ${className}`}
       style={[
         {
-          position: 'absolute',
-          ...positionStyles[position],
-          width: currentSize.button,
-          height: currentSize.button,
-          borderRadius: currentSize.button / 2,
+          ...positionConfig[position],
+          width: config.button,
+          height: config.button,
           backgroundColor: backgroundColor,
-          alignItems: 'center',
-          justifyContent: 'center',
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.3,
@@ -61,7 +58,7 @@ export const ApFAB: React.FC<ApFABProps> = ({
       activeOpacity={0.8}
       {...props}
     >
-      <Icon name={icon} size={currentSize.icon} color={color} />
+      <Icon name={icon} size={config.icon} color={color} />
     </TouchableOpacity>
   );
 };

@@ -4,9 +4,8 @@ import {
   View,
   TouchableWithoutFeedback,
   ModalProps,
-  Dimensions,
 } from 'react-native';
-import { ApTheme } from './ApTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ApModalProps extends Omit<ModalProps, 'visible'> {
   visible: boolean;
@@ -15,8 +14,6 @@ interface ApModalProps extends Omit<ModalProps, 'visible'> {
   position?: 'center' | 'bottom';
   className?: string;
 }
-
-import { useAppTheme } from '../hooks/useAppTheme';
 
 export const ApModal: React.FC<ApModalProps> = ({
   visible,
@@ -40,27 +37,19 @@ export const ApModal: React.FC<ApModalProps> = ({
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: isBottom ? 'flex-end' : 'center',
-            alignItems: 'center',
-          }}
+          className={`flex-1 items-center ${
+            isBottom ? 'justify-end' : 'justify-center'
+          }`}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
         >
           <TouchableWithoutFeedback>
             <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: isBottom
-                  ? ApTheme.BorderRadius.xl
-                  : ApTheme.BorderRadius.lg,
-                borderBottomLeftRadius: isBottom ? 0 : ApTheme.BorderRadius.lg,
-                borderBottomRightRadius: isBottom ? 0 : ApTheme.BorderRadius.lg,
-                padding: ApTheme.Spacing.lg,
-                width: isBottom ? '100%' : '90%',
-                maxWidth: isBottom ? undefined : 400,
-                maxHeight: '80%',
-              }}
+              className={`p-6 max-h-[80%] ${
+                isBottom
+                  ? 'w-full rounded-t-2xl'
+                  : 'w-[90%] max-w-[400px] rounded-xl'
+              }`}
+              style={{ backgroundColor: colors.surface }}
             >
               {children}
             </View>

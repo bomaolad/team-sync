@@ -9,12 +9,11 @@ import {
   ApAvatar,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface SettingsScreenProps {
   navigation: any;
 }
-
-import { useAppTheme } from '../../hooks/useAppTheme';
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   navigation,
@@ -66,38 +65,23 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     <TouchableOpacity
       onPress={onPress}
       disabled={!onPress && !onToggle}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: ApTheme.Spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-      }}
+      className="flex-row items-center py-4"
+      style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
     >
       <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          backgroundColor: ApTheme.Color.primary + '15',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginRight: ApTheme.Spacing.md,
-        }}
+        className="w-9 h-9 rounded-xl items-center justify-center mr-4"
+        style={{ backgroundColor: ApTheme.Color.primary + '15' }}
       >
         <Icon name={icon} size={18} color={ApTheme.Color.primary} />
       </View>
-      <ApText size="md" style={{ flex: 1 }}>
+      <ApText size="md" className="flex-1">
         {title}
       </ApText>
       {onToggle !== undefined && value !== undefined && (
         <Switch
           value={value}
           onValueChange={onToggle}
-          trackColor={{
-            false: colors.border,
-            true: ApTheme.Color.primary,
-          }}
+          trackColor={{ false: colors.border, true: ApTheme.Color.primary }}
           thumbColor={colors.text.light}
         />
       )}
@@ -110,21 +94,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   return (
     <ApScreen>
       <ApScrollView>
-        <ApText
-          size="xl"
-          weight="bold"
-          style={{
-            paddingTop: ApTheme.Spacing.md,
-            marginBottom: ApTheme.Spacing.lg,
-          }}
-        >
+        <ApText size="xl" weight="bold" className="pt-4 mb-6">
           Settings
         </ApText>
 
-        <ApCard padding="md" style={{ marginBottom: ApTheme.Spacing.lg }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <ApCard padding="md" className="mb-6">
+          <View className="flex-row items-center">
             <ApAvatar source={user.avatar} name={user.name} size="lg" />
-            <View style={{ flex: 1, marginLeft: ApTheme.Spacing.md }}>
+            <View className="flex-1 ml-4">
               <ApText size="lg" weight="semibold">
                 {user.name}
               </ApText>
@@ -145,11 +122,11 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           size="sm"
           weight="semibold"
           color={colors.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.sm }}
+          className="mb-2"
         >
           APPEARANCE
         </ApText>
-        <ApCard padding="sm" style={{ marginBottom: ApTheme.Spacing.lg }}>
+        <ApCard padding="sm" className="mb-6">
           <SettingRow
             icon="moon"
             title="Dark Mode"
@@ -161,12 +138,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <ApText
           size="sm"
           weight="semibold"
-          color={ApTheme.Color.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.sm }}
+          color={colors.text.secondary}
+          className="mb-2"
         >
           NOTIFICATIONS
         </ApText>
-        <ApCard padding="sm" style={{ marginBottom: ApTheme.Spacing.lg }}>
+        <ApCard padding="sm" className="mb-6">
           <SettingRow
             icon="check-circle"
             title="New Task Assignments"
@@ -204,33 +181,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <ApText
           size="sm"
           weight="semibold"
-          color={ApTheme.Color.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.sm }}
+          color={colors.text.secondary}
+          className="mb-2"
         >
           SYNC
         </ApText>
-        <ApCard padding="sm" style={{ marginBottom: ApTheme.Spacing.lg }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: ApTheme.Spacing.md,
-            }}
-          >
+        <ApCard padding="sm" className="mb-6">
+          <View className="flex-row items-center py-4">
             <View
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                backgroundColor: ApTheme.Color.success + '15',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: ApTheme.Spacing.md,
-              }}
+              className="w-9 h-9 rounded-xl items-center justify-center mr-4"
+              style={{ backgroundColor: ApTheme.Color.success + '15' }}
             >
               <Icon name="cloud" size={18} color={ApTheme.Color.success} />
             </View>
-            <View style={{ flex: 1 }}>
+            <View className="flex-1">
               <ApText size="md">Sync Status</ApText>
               <ApText size="xs" color={ApTheme.Color.success}>
                 Last synced: {lastSynced}
@@ -245,12 +209,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <ApText
           size="sm"
           weight="semibold"
-          color={ApTheme.Color.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.sm }}
+          color={colors.text.secondary}
+          className="mb-2"
         >
           ABOUT
         </ApText>
-        <ApCard padding="sm" style={{ marginBottom: ApTheme.Spacing.lg }}>
+        <ApCard padding="sm" className="mb-6">
           <SettingRow
             icon="info"
             title="About TeamSync"
@@ -273,20 +237,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
         <TouchableOpacity
           onPress={handleLogout}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingVertical: ApTheme.Spacing.md,
-            marginBottom: ApTheme.Spacing.xl,
-          }}
+          className="flex-row items-center justify-center py-4 mb-8"
         >
           <Icon name="log-out" size={20} color={ApTheme.Color.danger} />
           <ApText
             size="md"
             weight="semibold"
             color={ApTheme.Color.danger}
-            style={{ marginLeft: ApTheme.Spacing.sm }}
+            className="ml-2"
           >
             Logout
           </ApText>

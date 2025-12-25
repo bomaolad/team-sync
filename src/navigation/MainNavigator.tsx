@@ -2,7 +2,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Icon from '@expo/vector-icons/Feather';
-import { ApTheme } from '../components';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 import { DashboardScreen } from '../screens/home';

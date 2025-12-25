@@ -1,6 +1,5 @@
 export { ApTheme } from './ApTheme';
-export type { ThemeColor, StatusColor, PriorityColor } from './ApTheme';
-
+export type { ApThemeType } from './ApTheme';
 export { ApText } from './ApText';
 export { ApScreen } from './ApScreen';
 export { ApScrollView } from './ApScrollView';

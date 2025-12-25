@@ -1,32 +1,31 @@
-import React, { useState } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, TouchableOpacity, FlatList } from 'react-native';
 import {
   ApTheme,
   ApText,
   ApScreen,
-  ApScrollView,
   ApCard,
   ApAvatar,
   ApBadge,
-  ApFAB,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface DashboardScreenProps {
   navigation: any;
 }
 
-const mockStats = [
-  { id: '1', title: 'Pending Tasks', count: 12, color: ApTheme.Color.primary },
-  { id: '2', title: 'In Review', count: 5, color: ApTheme.Color.warning },
-  { id: '3', title: 'Recheck', count: 2, color: ApTheme.Color.danger },
-  { id: '4', title: 'Completed', count: 24, color: ApTheme.Color.success },
-];
+const mockStats = {
+  totalProjects: 5,
+  activeTasks: 12,
+  completedTasks: 24,
+  teamMembers: 8,
+};
 
 const mockTasks = [
   {
     id: '1',
-    title: 'Design Home Page Banner',
+    title: 'Design Home Page',
     project: 'Website Redesign',
     priority: 'high' as const,
     dueDate: 'Today',
@@ -34,134 +33,91 @@ const mockTasks = [
   },
   {
     id: '2',
-    title: 'Fix API Authentication Bug',
-    project: 'Backend API',
+    title: 'Fix Login Bug',
+    project: 'Mobile App',
     priority: 'high' as const,
     dueDate: 'Tomorrow',
     status: 'todo' as const,
   },
   {
     id: '3',
-    title: 'Update User Documentation',
-    project: 'Documentation',
+    title: 'Update API Docs',
+    project: 'Backend API',
     priority: 'medium' as const,
-    dueDate: 'Dec 25',
+    dueDate: 'Dec 20',
     status: 'underReview' as const,
   },
   {
     id: '4',
-    title: 'Implement Dark Mode',
-    project: 'Mobile App',
+    title: 'Team Meeting Notes',
+    project: 'Internal',
     priority: 'low' as const,
-    dueDate: 'Dec 28',
-    status: 'todo' as const,
-  },
-  {
-    id: '5',
-    title: 'Database Optimization',
-    project: 'Backend API',
-    priority: 'medium' as const,
-    dueDate: 'Dec 30',
-    status: 'recheck' as const,
+    dueDate: 'Dec 21',
+    status: 'done' as const,
   },
 ];
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
-};
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   navigation,
 }) => {
-  const userName = 'John';
+  const { colors } = useAppTheme();
 
-  const renderStatCard = ({ item }: { item: (typeof mockStats)[0] }) => (
-    <ApCard
-      padding="md"
-      style={{
-        width: 140,
-        marginRight: ApTheme.Spacing.sm,
-      }}
-    >
+  const StatCard = ({
+    title,
+    value,
+    icon,
+    color,
+  }: {
+    title: string;
+    value: number;
+    icon: React.ComponentProps<typeof Icon>['name'];
+    color: string;
+  }) => (
+    <ApCard padding="md" className="flex-1 mx-1">
       <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
-          backgroundColor: item.color + '15',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginBottom: ApTheme.Spacing.sm,
-        }}
+        className="w-10 h-10 rounded-xl items-center justify-center mb-2"
+        style={{ backgroundColor: color + '20' }}
       >
-        <ApText size="lg" weight="bold" color={item.color}>
-          {item.count}
-        </ApText>
+        <Icon name={icon} size={20} color={color} />
       </View>
-      <ApText size="sm" color={ApTheme.Color.text.secondary} numberOfLines={1}>
-        {item.title}
+      <ApText size="xxl" weight="bold" color={colors.text.primary}>
+        {value}
+      </ApText>
+      <ApText size="xs" color={colors.text.secondary}>
+        {title}
       </ApText>
     </ApCard>
   );
 
-  const renderTaskItem = ({ item }: { item: (typeof mockTasks)[0] }) => (
+  const renderTaskItem = (task: (typeof mockTasks)[0]) => (
     <ApCard
       padding="md"
-      onPress={() => navigation.navigate('TaskDetail', { taskId: item.id })}
-      style={{ marginBottom: ApTheme.Spacing.sm }}
+      onPress={() => navigation.navigate('TaskDetail', { taskId: task.id })}
+      className="mb-3"
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <View style={{ flex: 1, marginRight: ApTheme.Spacing.sm }}>
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1">
           <ApText size="md" weight="semibold" numberOfLines={1}>
-            {item.title}
+            {task.title}
           </ApText>
-          <ApText
-            size="sm"
-            color={ApTheme.Color.text.secondary}
-            style={{ marginTop: 2 }}
-          >
-            {item.project}
+          <ApText size="sm" color={colors.text.secondary} className="mt-0.5">
+            {task.project}
           </ApText>
+          <View className="flex-row items-center mt-2">
+            <Icon name="calendar" size={14} color={ApTheme.Color.text.muted} />
+            <ApText size="xs" color={ApTheme.Color.text.muted} className="ml-1">
+              {task.dueDate}
+            </ApText>
+          </View>
         </View>
-        <ApBadge priority={item.priority} label={item.priority} size="sm" />
-      </View>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: ApTheme.Spacing.md,
-        }}
-      >
-        <ApBadge
-          status={item.status}
-          label={item.status.replace(/([A-Z])/g, ' $1').trim()}
-        />
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Icon
-            name="calendar"
-            size={14}
-            color={
-              item.dueDate === 'Today'
-                ? ApTheme.Color.danger
-                : ApTheme.Color.text.muted
-            }
-          />
-          <ApText
+        <View className="items-end">
+          <ApBadge priority={task.priority} label={task.priority} size="sm" />
+          <ApBadge
+            status={task.status}
+            label={task.status}
             size="sm"
-            color={
-              item.dueDate === 'Today'
-                ? ApTheme.Color.danger
-                : ApTheme.Color.text.muted
-            }
-            style={{ marginLeft: 4 }}
-          >
-            {item.dueDate}
-          </ApText>
+            className="mt-2"
+          />
         </View>
       </View>
     </ApCard>
@@ -169,75 +125,73 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   return (
     <ApScreen>
-      <ApScrollView>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            paddingTop: ApTheme.Spacing.md,
-            marginBottom: ApTheme.Spacing.lg,
-          }}
-        >
+      <View className="flex-1">
+        <View className="flex-row items-center justify-between pt-4 mb-6">
           <View>
-            <ApText size="md" color={ApTheme.Color.text.secondary}>
-              {getGreeting()},
+            <ApText size="md" color={colors.text.secondary}>
+              Welcome back,
             </ApText>
             <ApText size="xl" weight="bold">
-              {userName} 👋
+              John Doe 👋
             </ApText>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <ApAvatar name={userName} size="md" />
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <ApAvatar name="John Doe" size="md" />
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-          <ApText
-            size="md"
-            weight="semibold"
-            style={{ marginBottom: ApTheme.Spacing.sm }}
-          >
-            Overview
-          </ApText>
-          <FlatList
-            horizontal
-            data={mockStats}
-            renderItem={renderStatCard}
-            keyExtractor={item => item.id}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: ApTheme.Spacing.md }}
+        <View className="flex-row -mx-1 mb-6">
+          <StatCard
+            title="Projects"
+            value={mockStats.totalProjects}
+            icon="folder"
+            color={ApTheme.Color.primary}
+          />
+          <StatCard
+            title="Active"
+            value={mockStats.activeTasks}
+            icon="clock"
+            color={ApTheme.Color.warning}
+          />
+        </View>
+        <View className="flex-row -mx-1 mb-6">
+          <StatCard
+            title="Done"
+            value={mockStats.completedTasks}
+            icon="check-circle"
+            color={ApTheme.Color.success}
+          />
+          <StatCard
+            title="Team"
+            value={mockStats.teamMembers}
+            icon="users"
+            color={ApTheme.Color.danger}
           />
         </View>
 
-        <View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: ApTheme.Spacing.sm,
-            }}
-          >
-            <ApText size="md" weight="semibold">
-              My Tasks
+        <View className="flex-row justify-between items-center mb-4">
+          <ApText size="lg" weight="semibold">
+            Recent Tasks
+          </ApText>
+          <TouchableOpacity onPress={() => navigation.navigate('Projects')}>
+            <ApText size="sm" weight="medium" color={ApTheme.Color.primary}>
+              See All
             </ApText>
-            <TouchableOpacity>
-              <ApText size="sm" weight="medium" color={ApTheme.Color.primary}>
-                See All
-              </ApText>
-            </TouchableOpacity>
-          </View>
-
-          {mockTasks.map(task => (
-            <React.Fragment key={task.id}>
-              {renderTaskItem({ item: task })}
-            </React.Fragment>
-          ))}
+          </TouchableOpacity>
         </View>
-      </ApScrollView>
 
-      <ApFAB icon="plus" onPress={() => navigation.navigate('CreateTask')} />
+        <FlatList
+          data={mockTasks}
+          renderItem={({ item }) => (
+            <React.Fragment key={item.id}>
+              {renderTaskItem(item)}
+            </React.Fragment>
+          )}
+          keyExtractor={item => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
+      </View>
     </ApScreen>
   );
 };

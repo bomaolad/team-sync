@@ -1,6 +1,5 @@
 import React from 'react';
-import { Text, TextProps, StyleSheet } from 'react-native';
-import { ApTheme } from './ApTheme';
+import { Text, TextProps } from 'react-native';
 
 interface ApTextProps extends TextProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | 'xxxl';
@@ -12,6 +11,29 @@ interface ApTextProps extends TextProps {
 
 import { useAppTheme } from '../hooks/useAppTheme';
 
+const sizeClasses = {
+  xs: 'text-xs',
+  sm: 'text-sm',
+  md: 'text-base',
+  lg: 'text-lg',
+  xl: 'text-xl',
+  xxl: 'text-2xl',
+  xxxl: 'text-3xl',
+};
+
+const weightClasses = {
+  normal: 'font-normal',
+  medium: 'font-medium',
+  semibold: 'font-semibold',
+  bold: 'font-bold',
+};
+
+const alignClasses = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+};
+
 export const ApText: React.FC<ApTextProps> = ({
   children,
   size = 'md',
@@ -19,42 +41,18 @@ export const ApText: React.FC<ApTextProps> = ({
   weight = 'normal',
   align = 'left',
   numberOfLines,
-  className,
+  className = '',
   style,
   ...props
 }) => {
   const { colors } = useAppTheme();
   const resolvedColor = color || colors.text.primary;
 
-  const fontSizeMap = {
-    xs: ApTheme.FontSize.xs,
-    sm: ApTheme.FontSize.sm,
-    md: ApTheme.FontSize.md,
-    lg: ApTheme.FontSize.lg,
-    xl: ApTheme.FontSize.xl,
-    xxl: ApTheme.FontSize.xxl,
-    xxxl: ApTheme.FontSize.xxxl,
-  };
-
-  const fontWeightMap = {
-    normal: ApTheme.FontWeight.normal,
-    medium: ApTheme.FontWeight.medium,
-    semibold: ApTheme.FontWeight.semibold,
-    bold: ApTheme.FontWeight.bold,
-  };
-
   return (
     <Text
       numberOfLines={numberOfLines}
-      style={[
-        {
-          fontSize: fontSizeMap[size],
-          color: resolvedColor,
-          fontWeight: fontWeightMap[weight],
-          textAlign: align,
-        },
-        style,
-      ]}
+      className={`${sizeClasses[size]} ${weightClasses[weight]} ${alignClasses[align]} ${className}`}
+      style={[{ color: resolvedColor }, style]}
       {...props}
     >
       {children}

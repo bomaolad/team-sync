@@ -14,17 +14,14 @@ export const ApScrollView: React.FC<ApScrollViewProps> = ({
   onRefresh,
   showsVerticalScrollIndicator = false,
   contentContainerStyle,
+  className = '',
   ...props
 }) => {
   return (
     <ScrollView
+      className={className}
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-      contentContainerStyle={[
-        {
-          paddingBottom: ApTheme.Spacing.xl,
-        },
-        contentContainerStyle,
-      ]}
+      contentContainerStyle={[{ paddingBottom: 32 }, contentContainerStyle]}
       refreshControl={
         onRefresh ? (
           <RefreshControl

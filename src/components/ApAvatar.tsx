@@ -1,9 +1,14 @@
 import React from 'react';
-import { View, Image, TouchableOpacity, ViewProps } from 'react-native';
-import { ApTheme } from './ApTheme';
+import {
+  View,
+  Image,
+  TouchableOpacity,
+  TouchableOpacityProps,
+} from 'react-native';
 import { ApText } from './ApText';
+import { ApTheme } from './ApTheme';
 
-interface ApAvatarProps extends ViewProps {
+interface ApAvatarProps extends TouchableOpacityProps {
   source?: string | null;
   name?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -11,31 +16,24 @@ interface ApAvatarProps extends ViewProps {
   className?: string;
 }
 
+const sizeConfig = {
+  xs: { dimension: 24, fontSize: 'xs' as const },
+  sm: { dimension: 32, fontSize: 'xs' as const },
+  md: { dimension: 40, fontSize: 'sm' as const },
+  lg: { dimension: 56, fontSize: 'lg' as const },
+  xl: { dimension: 80, fontSize: 'xl' as const },
+};
+
 export const ApAvatar: React.FC<ApAvatarProps> = ({
   source,
   name,
   size = 'md',
   onPress,
   style,
+  className = '',
   ...props
 }) => {
-  const sizeMap = {
-    xs: 24,
-    sm: 32,
-    md: 40,
-    lg: 56,
-    xl: 80,
-  };
-
-  const fontSizeMap = {
-    xs: 'xs' as const,
-    sm: 'xs' as const,
-    md: 'sm' as const,
-    lg: 'lg' as const,
-    xl: 'xl' as const,
-  };
-
-  const avatarSize = sizeMap[size];
+  const config = sizeConfig[size];
 
   const getInitials = (fullName: string) => {
     const names = fullName.trim().split(' ');
@@ -48,25 +46,23 @@ export const ApAvatar: React.FC<ApAvatarProps> = ({
   const avatarContent = source ? (
     <Image
       source={{ uri: source }}
+      className="rounded-full"
       style={{
-        width: avatarSize,
-        height: avatarSize,
-        borderRadius: avatarSize / 2,
+        width: config.dimension,
+        height: config.dimension,
       }}
     />
   ) : (
     <View
+      className="items-center justify-center rounded-full"
       style={{
-        width: avatarSize,
-        height: avatarSize,
-        borderRadius: avatarSize / 2,
+        width: config.dimension,
+        height: config.dimension,
         backgroundColor: ApTheme.Color.primary,
-        alignItems: 'center',
-        justifyContent: 'center',
       }}
     >
       <ApText
-        size={fontSizeMap[size]}
+        size={config.fontSize}
         weight="semibold"
         color={ApTheme.Color.white}
       >
@@ -77,14 +73,19 @@ export const ApAvatar: React.FC<ApAvatarProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} style={style} {...props}>
+      <TouchableOpacity
+        onPress={onPress}
+        className={className}
+        style={style}
+        {...props}
+      >
         {avatarContent}
       </TouchableOpacity>
     );
   }
 
   return (
-    <View style={style} {...props}>
+    <View className={className} style={style} {...props}>
       {avatarContent}
     </View>
   );

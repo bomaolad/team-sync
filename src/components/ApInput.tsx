@@ -5,21 +5,22 @@ import {
   View,
   TouchableOpacity,
 } from 'react-native';
-import { ApTheme } from './ApTheme';
 import { ApText } from './ApText';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../hooks/useAppTheme';
+import { ApTheme } from './ApTheme';
+
+type IconName = React.ComponentProps<typeof Icon>['name'];
 
 interface ApInputProps extends TextInputProps {
   label?: string;
   error?: string;
-  leftIcon?: string;
-  rightIcon?: string;
+  leftIcon?: IconName;
+  rightIcon?: IconName;
   onRightIconPress?: () => void;
   containerClassName?: string;
   className?: string;
 }
-
-import { useAppTheme } from '../hooks/useAppTheme';
 
 export const ApInput: React.FC<ApInputProps> = ({
   label,
@@ -29,6 +30,7 @@ export const ApInput: React.FC<ApInputProps> = ({
   onRightIconPress,
   secureTextEntry,
   style,
+  className = '',
   ...props
 }) => {
   const { colors } = useAppTheme();
@@ -40,27 +42,23 @@ export const ApInput: React.FC<ApInputProps> = ({
   };
 
   return (
-    <View style={{ marginBottom: ApTheme.Spacing.md }}>
+    <View className="mb-4">
       {label && (
         <ApText
           size="sm"
           weight="medium"
           color={colors.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.xs }}
+          className="mb-1"
         >
           {label}
         </ApText>
       )}
       <View
+        className="flex-row items-center rounded-lg px-4 h-12"
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
           backgroundColor: colors.surface,
           borderWidth: 1,
           borderColor: error ? ApTheme.Color.danger : colors.border,
-          borderRadius: ApTheme.BorderRadius.md,
-          paddingHorizontal: ApTheme.Spacing.md,
-          height: 48,
         }}
       >
         {leftIcon && (
@@ -68,21 +66,14 @@ export const ApInput: React.FC<ApInputProps> = ({
             name={leftIcon}
             size={20}
             color={colors.text.muted}
-            style={{ marginRight: ApTheme.Spacing.sm }}
+            style={{ marginRight: 8 }}
           />
         )}
         <TextInput
           placeholderTextColor={colors.text.muted}
           secureTextEntry={isPassword ? !isPasswordVisible : false}
-          style={[
-            {
-              flex: 1,
-              fontSize: ApTheme.FontSize.md,
-              color: colors.text.primary,
-              paddingVertical: 0,
-            },
-            style,
-          ]}
+          className={`flex-1 text-base py-0 ${className}`}
+          style={[{ color: colors.text.primary }, style]}
           {...props}
         />
         {isPassword && (
@@ -103,17 +94,13 @@ export const ApInput: React.FC<ApInputProps> = ({
               name={rightIcon}
               size={20}
               color={ApTheme.Color.text.muted}
-              style={{ marginLeft: ApTheme.Spacing.sm }}
+              style={{ marginLeft: 8 }}
             />
           </TouchableOpacity>
         )}
       </View>
       {error && (
-        <ApText
-          size="xs"
-          color={ApTheme.Color.danger}
-          style={{ marginTop: ApTheme.Spacing.xs }}
-        >
+        <ApText size="xs" color={ApTheme.Color.danger} className="mt-1">
           {error}
         </ApText>
       )}

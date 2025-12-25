@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Icon from '@expo/vector-icons/Feather';
 import {
+  ApTheme,
   ApScreen,
   ApText,
   ApInput,
   ApButton,
-  ApTheme,
   ApCard,
 } from '../../components';
 import { useAppTheme } from '../../hooks/useAppTheme';
@@ -34,7 +34,6 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
 
   useEffect(() => {
     if (isEditing) {
-      // Mock fetch project details
       setName('Website Redesign');
       setDescription('Redesigning the corporate website with new branding.');
       setStatus('active');
@@ -49,7 +48,6 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
     }
 
     setLoading(true);
-    // Simulate API call
     new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
       setLoading(false);
       Alert.alert(
@@ -71,16 +69,11 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
   }) => (
     <TouchableOpacity
       onPress={() => setStatus(value)}
+      className="flex-1 py-2 px-4 rounded-lg items-center mx-1"
       style={{
-        flex: 1,
-        paddingVertical: ApTheme.Spacing.sm,
-        paddingHorizontal: ApTheme.Spacing.md,
         backgroundColor: status === value ? color : colors.surface,
-        borderRadius: ApTheme.BorderRadius.md,
         borderWidth: 1,
         borderColor: status === value ? color : colors.border,
-        alignItems: 'center',
-        marginHorizontal: ApTheme.Spacing.xs,
       }}
     >
       <ApText
@@ -94,25 +87,18 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
 
   return (
     <ApScreen>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: ApTheme.Spacing.md,
-        }}
-      >
+      <View className="flex-row items-center justify-between py-4">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <ApText size="lg" weight="bold">
           {isEditing ? 'Edit Project' : 'Create New Project'}
         </ApText>
-        <View style={{ width: 24 }} />
+        <View className="w-6" />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <ApCard padding="lg" style={{ marginTop: ApTheme.Spacing.md }}>
+        <ApCard padding="lg" className="mt-4">
           <ApInput
             label="Project Name"
             placeholder="e.g. Website Redesign"
@@ -138,21 +124,16 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
             rightIcon="calendar"
           />
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
+          <View className="mb-6">
             <ApText
               size="sm"
               weight="medium"
               color={colors.text.secondary}
-              style={{ marginBottom: ApTheme.Spacing.xs }}
+              className="mb-1"
             >
               Status
             </ApText>
-            <View
-              style={{
-                flexDirection: 'row',
-                marginHorizontal: -ApTheme.Spacing.xs,
-              }}
-            >
+            <View className="flex-row -mx-1">
               <StatusOption
                 value="active"
                 label="Active"

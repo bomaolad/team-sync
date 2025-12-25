@@ -14,6 +14,7 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface ForgotPasswordScreenProps {
   navigation: any;
@@ -22,6 +23,7 @@ interface ForgotPasswordScreenProps {
 export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   navigation,
 }) => {
+  const { colors } = useAppTheme();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,20 +50,11 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
 
   if (success) {
     return (
-      <ApScreen backgroundColor={ApTheme.Color.background.light}>
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
+      <ApScreen>
+        <View className="flex-1 items-center justify-center">
           <View
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              backgroundColor: ApTheme.Color.success + '20',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: ApTheme.Spacing.lg,
-            }}
+            className="w-20 h-20 rounded-full items-center justify-center mb-6"
+            style={{ backgroundColor: ApTheme.Color.success + '20' }}
           >
             <Icon name="check" size={40} color={ApTheme.Color.success} />
           </View>
@@ -69,7 +62,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
           <ApText
             size="xl"
             weight="bold"
-            color={ApTheme.Color.text.primary}
+            color={colors.text.primary}
             align="center"
           >
             Check Your Email
@@ -77,9 +70,9 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
 
           <ApText
             size="md"
-            color={ApTheme.Color.text.secondary}
+            color={colors.text.secondary}
             align="center"
-            style={{ marginTop: ApTheme.Spacing.sm, paddingHorizontal: 20 }}
+            className="mt-2 px-5"
           >
             We've sent a password reset link to {email}
           </ApText>
@@ -87,7 +80,7 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
           <ApButton
             title="Back to Login"
             onPress={() => navigation.navigate('Login')}
-            style={{ marginTop: ApTheme.Spacing.xl, width: 200 }}
+            className="mt-8 w-[200px]"
           />
         </View>
       </ApScreen>
@@ -95,49 +88,35 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
   }
 
   return (
-    <ApScreen backgroundColor={ApTheme.Color.background.light}>
+    <ApScreen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ApScrollView>
-          <View style={{ paddingTop: 40, paddingBottom: 40 }}>
+          <View className="pt-10 pb-10">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={{ marginBottom: ApTheme.Spacing.lg }}
+              className="mb-6"
             >
-              <Icon
-                name="arrow-left"
-                size={24}
-                color={ApTheme.Color.text.primary}
-              />
+              <Icon name="arrow-left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
 
             <View
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                backgroundColor: ApTheme.Color.primary + '15',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: ApTheme.Spacing.lg,
-              }}
+              className="w-16 h-16 rounded-full items-center justify-center mb-6"
+              style={{ backgroundColor: ApTheme.Color.primary + '15' }}
             >
               <Icon name="key" size={28} color={ApTheme.Color.primary} />
             </View>
 
-            <ApText size="xxl" weight="bold" color={ApTheme.Color.text.primary}>
+            <ApText size="xxl" weight="bold" color={colors.text.primary}>
               Forgot Password?
             </ApText>
 
             <ApText
               size="md"
-              color={ApTheme.Color.text.secondary}
-              style={{
-                marginTop: ApTheme.Spacing.xs,
-                marginBottom: ApTheme.Spacing.xl,
-              }}
+              color={colors.text.secondary}
+              className="mt-1 mb-8"
             >
               Enter your email address and we'll send you a link to reset your
               password.
@@ -162,12 +141,12 @@ export const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({
               onPress={handleSendResetLink}
               loading={loading}
               fullWidth
-              style={{ marginTop: ApTheme.Spacing.md }}
+              className="mt-4"
             />
 
             <TouchableOpacity
               onPress={() => navigation.navigate('Login')}
-              style={{ alignSelf: 'center', marginTop: ApTheme.Spacing.xl }}
+              className="self-center mt-8"
             >
               <ApText size="md" weight="medium" color={ApTheme.Color.primary}>
                 Back to Login

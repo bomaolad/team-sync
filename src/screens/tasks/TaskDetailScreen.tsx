@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View,
   TouchableOpacity,
-  FlatList,
   TextInput,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +18,7 @@ import {
   ApModal,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface TaskDetailScreenProps {
   navigation: any;
@@ -87,6 +87,7 @@ const mockTask = {
 export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   navigation,
 }) => {
+  const { colors } = useAppTheme();
   const [task, setTask] = useState(mockTask);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showRecheckModal, setShowRecheckModal] = useState(false);
@@ -107,7 +108,6 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
 
   const handleRecheckSubmit = () => {
     if (!recheckReason.trim()) return;
-
     setTask(prev => ({ ...prev, status: 'recheck' }));
     setShowRecheckModal(false);
     setRecheckReason('');
@@ -131,63 +131,32 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
     <ApScreen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingTop: ApTheme.Spacing.md,
-            marginBottom: ApTheme.Spacing.md,
-          }}
-        >
+        <View className="flex-row items-center pt-4 mb-4">
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={{ marginRight: ApTheme.Spacing.md }}
+            className="mr-4"
           >
-            <Icon
-              name="arrow-left"
-              size={24}
-              color={ApTheme.Color.text.primary}
-            />
+            <Icon name="arrow-left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          <ApText
-            size="sm"
-            color={ApTheme.Color.text.secondary}
-            style={{ flex: 1 }}
-          >
+          <ApText size="sm" color={colors.text.secondary} className="flex-1">
             {task.project}
           </ApText>
           <TouchableOpacity>
-            <Icon
-              name="more-vertical"
-              size={24}
-              color={ApTheme.Color.text.primary}
-            />
+            <Icon name="more-vertical" size={24} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
 
         <ApScrollView>
-          <ApText
-            size="xl"
-            weight="bold"
-            style={{ marginBottom: ApTheme.Spacing.md }}
-          >
+          <ApText size="xl" weight="bold" className="mb-4">
             {task.title}
           </ApText>
 
           <TouchableOpacity
             onPress={() => setShowStatusModal(true)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: statusConfig[task.status].color,
-              paddingHorizontal: ApTheme.Spacing.md,
-              paddingVertical: ApTheme.Spacing.sm,
-              borderRadius: ApTheme.BorderRadius.md,
-              alignSelf: 'flex-start',
-              marginBottom: ApTheme.Spacing.lg,
-            }}
+            className="flex-row items-center self-start px-4 py-2 rounded-lg mb-6"
+            style={{ backgroundColor: statusConfig[task.status].color }}
           >
             <ApText size="sm" weight="semibold" color={ApTheme.Color.white}>
               {statusConfig[task.status].label}
@@ -200,78 +169,62 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             />
           </TouchableOpacity>
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-            <View
-              style={{ flexDirection: 'row', marginBottom: ApTheme.Spacing.md }}
-            >
-              <View style={{ flex: 1 }}>
+          <View className="mb-6">
+            <View className="flex-row mb-4">
+              <View className="flex-1">
                 <ApText size="xs" color={ApTheme.Color.text.muted}>
                   Assignee
                 </ApText>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginTop: 4,
-                  }}
-                >
+                <View className="flex-row items-center mt-1">
                   <ApAvatar name={task.assignee.name} size="xs" />
-                  <ApText size="sm" weight="medium" style={{ marginLeft: 8 }}>
+                  <ApText size="sm" weight="medium" className="ml-2">
                     {task.assignee.name}
                   </ApText>
                 </View>
               </View>
-              <View style={{ flex: 1 }}>
+              <View className="flex-1">
                 <ApText size="xs" color={ApTheme.Color.text.muted}>
                   Priority
                 </ApText>
                 <ApBadge
                   priority={task.priority}
                   label={task.priority}
-                  style={{ marginTop: 4 }}
+                  className="mt-1"
                 />
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row' }}>
-              <View style={{ flex: 1 }}>
+            <View className="flex-row">
+              <View className="flex-1">
                 <ApText size="xs" color={ApTheme.Color.text.muted}>
                   Start Date
                 </ApText>
-                <ApText size="sm" weight="medium" style={{ marginTop: 4 }}>
+                <ApText size="sm" weight="medium" className="mt-1">
                   {task.startDate}
                 </ApText>
               </View>
-              <View style={{ flex: 1 }}>
+              <View className="flex-1">
                 <ApText size="xs" color={ApTheme.Color.text.muted}>
                   Due Date
                 </ApText>
-                <ApText size="sm" weight="medium" style={{ marginTop: 4 }}>
+                <ApText size="sm" weight="medium" className="mt-1">
                   {task.dueDate}
                 </ApText>
               </View>
             </View>
           </View>
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-            <ApText
-              size="md"
-              weight="semibold"
-              style={{ marginBottom: ApTheme.Spacing.sm }}
-            >
+          <View className="mb-6">
+            <ApText size="md" weight="semibold" className="mb-2">
               Description
             </ApText>
-            <ApText size="sm" color={ApTheme.Color.text.secondary}>
+            <ApText size="sm" color={colors.text.secondary}>
               {task.description}
             </ApText>
           </View>
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-            <ApText
-              size="md"
-              weight="semibold"
-              style={{ marginBottom: ApTheme.Spacing.sm }}
-            >
+          <View className="mb-6">
+            <ApText size="md" weight="semibold" className="mb-2">
               Subtasks ({task.subtasks.filter(s => s.completed).length}/
               {task.subtasks.length})
             </ApText>
@@ -279,27 +232,18 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
               <TouchableOpacity
                 key={subtask.id}
                 onPress={() => toggleSubtask(subtask.id)}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: ApTheme.Spacing.sm,
-                }}
+                className="flex-row items-center py-2"
               >
                 <View
+                  className="w-[22px] h-[22px] rounded-md items-center justify-center mr-2"
                   style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: 6,
                     borderWidth: 2,
                     borderColor: subtask.completed
                       ? ApTheme.Color.success
                       : ApTheme.Color.border.light,
                     backgroundColor: subtask.completed
                       ? ApTheme.Color.success
-                      : 'transparent',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginRight: ApTheme.Spacing.sm,
+                      : ApTheme.Color.transparent,
                   }}
                 >
                   {subtask.completed && (
@@ -314,7 +258,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                       : 'none',
                     color: subtask.completed
                       ? ApTheme.Color.text.muted
-                      : ApTheme.Color.text.primary,
+                      : colors.text.primary,
                   }}
                 >
                   {subtask.title}
@@ -323,31 +267,20 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             ))}
           </View>
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-            <ApText
-              size="md"
-              weight="semibold"
-              style={{ marginBottom: ApTheme.Spacing.sm }}
-            >
+          <View className="mb-6">
+            <ApText size="md" weight="semibold" className="mb-2">
               Attachments
             </ApText>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            <View className="flex-row flex-wrap">
               {task.attachments.map(attachment => (
-                <ApCard
-                  key={attachment.id}
-                  padding="sm"
-                  style={{
-                    marginRight: ApTheme.Spacing.sm,
-                    marginBottom: ApTheme.Spacing.sm,
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ApCard key={attachment.id} padding="sm" className="mr-2 mb-2">
+                  <View className="flex-row items-center">
                     <Icon
                       name={attachment.type === 'image' ? 'image' : 'file'}
                       size={16}
                       color={ApTheme.Color.primary}
                     />
-                    <ApText size="sm" style={{ marginLeft: 8 }}>
+                    <ApText size="sm" className="ml-2">
                       {attachment.name}
                     </ApText>
                   </View>
@@ -356,32 +289,22 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             </View>
           </View>
 
-          <View style={{ marginBottom: 100 }}>
-            <ApText
-              size="md"
-              weight="semibold"
-              style={{ marginBottom: ApTheme.Spacing.sm }}
-            >
+          <View className="mb-24">
+            <ApText size="md" weight="semibold" className="mb-2">
               Activity
             </ApText>
             {task.comments.map(comment => (
-              <View
-                key={comment.id}
-                style={{
-                  flexDirection: 'row',
-                  marginBottom: ApTheme.Spacing.md,
-                }}
-              >
+              <View key={comment.id} className="flex-row mb-4">
                 <ApAvatar name={comment.user.name} size="sm" />
-                <View style={{ flex: 1, marginLeft: ApTheme.Spacing.sm }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View className="flex-1 ml-2">
+                  <View className="flex-row items-center">
                     <ApText size="sm" weight="semibold">
                       {comment.user.name}
                     </ApText>
                     <ApText
                       size="xs"
                       color={ApTheme.Color.text.muted}
-                      style={{ marginLeft: 8 }}
+                      className="ml-2"
                     >
                       {comment.timestamp}
                     </ApText>
@@ -391,7 +314,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                     color={
                       comment.isSystem
                         ? ApTheme.Color.text.muted
-                        : ApTheme.Color.text.secondary
+                        : colors.text.secondary
                     }
                     style={{
                       marginTop: 2,
@@ -407,27 +330,21 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
         </ApScrollView>
 
         <View
+          className="flex-row items-center p-4"
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            padding: ApTheme.Spacing.md,
             borderTopWidth: 1,
-            borderTopColor: ApTheme.Color.border.light,
-            backgroundColor: ApTheme.Color.surface.light,
+            borderTopColor: colors.border,
+            backgroundColor: colors.surface,
           }}
         >
           <TextInput
             placeholder="Write a comment..."
             value={newComment}
             onChangeText={setNewComment}
+            className="flex-1 rounded-lg px-4 py-2 mr-2 text-sm"
             style={{
-              flex: 1,
               backgroundColor: ApTheme.Color.background.light,
-              borderRadius: ApTheme.BorderRadius.md,
-              paddingHorizontal: ApTheme.Spacing.md,
-              paddingVertical: ApTheme.Spacing.sm,
-              marginRight: ApTheme.Spacing.sm,
-              fontSize: 14,
+              color: colors.text.primary,
             }}
           />
           <TouchableOpacity onPress={handleAddComment}>
@@ -440,31 +357,18 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
         visible={showStatusModal}
         onClose={() => setShowStatusModal(false)}
       >
-        <ApText
-          size="lg"
-          weight="bold"
-          style={{ marginBottom: ApTheme.Spacing.md }}
-        >
+        <ApText size="lg" weight="bold" className="mb-4">
           Change Status
         </ApText>
         {(Object.keys(statusConfig) as TaskStatus[]).map(status => (
           <TouchableOpacity
             key={status}
             onPress={() => handleStatusChange(status)}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: ApTheme.Spacing.sm,
-            }}
+            className="flex-row items-center py-2"
           >
             <View
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 8,
-                backgroundColor: statusConfig[status].color,
-                marginRight: ApTheme.Spacing.sm,
-              }}
+              className="w-4 h-4 rounded-full mr-2"
+              style={{ backgroundColor: statusConfig[status].color }}
             />
             <ApText
               size="md"
@@ -491,18 +395,10 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
           setRecheckReason('');
         }}
       >
-        <ApText
-          size="lg"
-          weight="bold"
-          style={{ marginBottom: ApTheme.Spacing.sm }}
-        >
+        <ApText size="lg" weight="bold" className="mb-2">
           Reason for Rejection
         </ApText>
-        <ApText
-          size="sm"
-          color={ApTheme.Color.text.secondary}
-          style={{ marginBottom: ApTheme.Spacing.md }}
-        >
+        <ApText size="sm" color={colors.text.secondary} className="mb-4">
           Please provide a reason why this task needs to be rechecked.
         </ApText>
         <TextInput
@@ -511,14 +407,12 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
           onChangeText={setRecheckReason}
           multiline
           numberOfLines={4}
+          className="rounded-lg p-4 text-sm mb-4"
           style={{
             backgroundColor: ApTheme.Color.background.light,
-            borderRadius: ApTheme.BorderRadius.md,
-            padding: ApTheme.Spacing.md,
-            fontSize: 14,
             textAlignVertical: 'top',
             minHeight: 100,
-            marginBottom: ApTheme.Spacing.md,
+            color: colors.text.primary,
           }}
         />
         <ApButton

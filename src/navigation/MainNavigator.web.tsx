@@ -2,11 +2,15 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from '@expo/vector-icons/Feather';
-import { ApTheme } from '../components';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 import { DashboardScreen } from '../screens/home';
-import { ProjectsListScreen, ProjectDetailScreen } from '../screens/projects';
-import { TaskDetailScreen } from '../screens/tasks';
+import {
+  ProjectsListScreen,
+  ProjectDetailScreen,
+  CreateProjectScreen,
+} from '../screens/projects';
+import { TaskDetailScreen, CreateTaskScreen } from '../screens/tasks';
 import { TeamListScreen } from '../screens/team';
 import { SettingsScreen } from '../screens/settings';
 
@@ -14,8 +18,8 @@ export type MainStackParamList = {
   MainTabs: undefined;
   ProjectDetail: { projectId: string };
   TaskDetail: { taskId: string };
-  CreateTask: undefined;
-  CreateProject: undefined;
+  CreateTask: { taskId?: string };
+  CreateProject: { projectId?: string };
   Profile: undefined;
 };
 
@@ -30,15 +34,17 @@ const Stack = createStackNavigator<MainStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 const TabNavigator: React.FC = () => {
+  const { colors } = useAppTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: ApTheme.Color.primary,
-        tabBarInactiveTintColor: ApTheme.Color.text.muted,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.text.muted,
         tabBarStyle: {
-          backgroundColor: ApTheme.Color.surface.light,
-          borderTopColor: ApTheme.Color.border.light,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           paddingTop: 8,
           height: 60,
         },
@@ -99,6 +105,8 @@ export const MainNavigator: React.FC = () => {
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="ProjectDetail" component={ProjectDetailScreen} />
       <Stack.Screen name="TaskDetail" component={TaskDetailScreen} />
+      <Stack.Screen name="CreateTask" component={CreateTaskScreen} />
+      <Stack.Screen name="CreateProject" component={CreateProjectScreen} />
     </Stack.Navigator>
   );
 };

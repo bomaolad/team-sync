@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, ViewProps, TouchableOpacity } from 'react-native';
-import { ApTheme } from './ApTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ApCardProps extends ViewProps {
   onPress?: () => void;
@@ -9,7 +9,12 @@ interface ApCardProps extends ViewProps {
   className?: string;
 }
 
-import { useAppTheme } from '../hooks/useAppTheme';
+const paddingClasses = {
+  none: 'p-0',
+  sm: 'p-2',
+  md: 'p-4',
+  lg: 'p-6',
+};
 
 export const ApCard: React.FC<ApCardProps> = ({
   children,
@@ -17,35 +22,28 @@ export const ApCard: React.FC<ApCardProps> = ({
   padding = 'md',
   elevated = true,
   style,
+  className = '',
   ...props
 }) => {
   const { colors } = useAppTheme();
 
-  const paddingMap = {
-    none: 0,
-    sm: ApTheme.Spacing.sm,
-    md: ApTheme.Spacing.md,
-    lg: ApTheme.Spacing.lg,
-  };
-
-  const cardStyle = {
-    backgroundColor: colors.surface,
-    borderRadius: ApTheme.BorderRadius.lg,
-    padding: paddingMap[padding],
-    ...(elevated && {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
-    }),
-  };
+  const baseClass = `rounded-xl ${paddingClasses[padding]} ${className}`;
+  const shadowStyle = elevated
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+      }
+    : {};
 
   if (onPress) {
     return (
       <TouchableOpacity
         onPress={onPress}
-        style={[cardStyle, style]}
+        className={baseClass}
+        style={[{ backgroundColor: colors.surface }, shadowStyle, style]}
         activeOpacity={0.8}
         {...props}
       >
@@ -55,7 +53,11 @@ export const ApCard: React.FC<ApCardProps> = ({
   }
 
   return (
-    <View style={[cardStyle, style]} {...props}>
+    <View
+      className={baseClass}
+      style={[{ backgroundColor: colors.surface }, shadowStyle, style]}
+      {...props}
+    >
       {children}
     </View>
   );

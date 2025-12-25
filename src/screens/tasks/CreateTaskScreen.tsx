@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Icon from '@expo/vector-icons/Feather';
 import {
+  ApTheme,
   ApScreen,
   ApText,
   ApInput,
   ApButton,
-  ApTheme,
   ApCard,
 } from '../../components';
 import { useAppTheme } from '../../hooks/useAppTheme';
@@ -33,7 +33,6 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
 
   useEffect(() => {
     if (isEditing) {
-      // Mock fetch task details
       setTitle('Fix API Authentication Bug');
       setDescription('Investigate 401 errors on login endpoint');
       setProject('Backend API');
@@ -50,7 +49,6 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
     }
 
     setLoading(true);
-    // Simulate API call
     new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
       setLoading(false);
       Alert.alert(
@@ -64,24 +62,19 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
   const PriorityOption = ({
     value,
     label,
-    color,
   }: {
     value: 'low' | 'medium' | 'high';
     label: string;
-    color: string;
   }) => (
     <TouchableOpacity
       onPress={() => setPriority(value)}
+      className="flex-1 py-2 px-4 rounded-lg items-center mx-1"
       style={{
-        flex: 1,
-        paddingVertical: ApTheme.Spacing.sm,
-        paddingHorizontal: ApTheme.Spacing.md,
-        backgroundColor: priority === value ? color : colors.surface,
-        borderRadius: ApTheme.BorderRadius.md,
+        backgroundColor:
+          priority === value ? ApTheme.Color.priority[value] : colors.surface,
         borderWidth: 1,
-        borderColor: priority === value ? color : colors.border,
-        alignItems: 'center',
-        marginHorizontal: ApTheme.Spacing.xs,
+        borderColor:
+          priority === value ? ApTheme.Color.priority[value] : colors.border,
       }}
     >
       <ApText
@@ -95,25 +88,18 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
 
   return (
     <ApScreen>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: ApTheme.Spacing.md,
-        }}
-      >
+      <View className="flex-row items-center justify-between py-4">
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <ApText size="lg" weight="bold">
           {isEditing ? 'Edit Task' : 'Create New Task'}
         </ApText>
-        <View style={{ width: 24 }} />
+        <View className="w-6" />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <ApCard padding="lg" style={{ marginTop: ApTheme.Spacing.md }}>
+        <ApCard padding="lg" className="mt-4">
           <ApInput
             label="Task Title"
             placeholder="e.g. Design Home Page"
@@ -147,36 +133,19 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
             rightIcon="calendar"
           />
 
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
+          <View className="mb-6">
             <ApText
               size="sm"
               weight="medium"
               color={colors.text.secondary}
-              style={{ marginBottom: ApTheme.Spacing.xs }}
+              className="mb-1"
             >
               Priority
             </ApText>
-            <View
-              style={{
-                flexDirection: 'row',
-                marginHorizontal: -ApTheme.Spacing.xs,
-              }}
-            >
-              <PriorityOption
-                value="low"
-                label="Low"
-                color={ApTheme.Color.priority.low}
-              />
-              <PriorityOption
-                value="medium"
-                label="Medium"
-                color={ApTheme.Color.priority.medium}
-              />
-              <PriorityOption
-                value="high"
-                label="High"
-                color={ApTheme.Color.priority.high}
-              />
+            <View className="flex-row -mx-1">
+              <PriorityOption value="low" label="Low" />
+              <PriorityOption value="medium" label="Medium" />
+              <PriorityOption value="high" label="High" />
             </View>
           </View>
 

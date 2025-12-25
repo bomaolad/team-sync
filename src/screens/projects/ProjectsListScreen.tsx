@@ -11,6 +11,7 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface ProjectsListScreenProps {
   navigation: any;
@@ -76,6 +77,7 @@ type FilterType = 'all' | 'active' | 'completed';
 export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
   navigation,
 }) => {
+  const { colors } = useAppTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
@@ -102,18 +104,18 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
       onPress={() =>
         navigation.navigate('ProjectDetail', { projectId: item.id })
       }
-      style={{ marginBottom: ApTheme.Spacing.md }}
+      className="mb-4"
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <View style={{ flex: 1 }}>
+      <View className="flex-row justify-between">
+        <View className="flex-1">
           <ApText size="lg" weight="semibold" numberOfLines={1}>
             {item.title}
           </ApText>
           <ApText
             size="sm"
-            color={ApTheme.Color.text.secondary}
+            color={colors.text.secondary}
             numberOfLines={1}
-            style={{ marginTop: 2 }}
+            className="mt-0.5"
           >
             {item.description}
           </ApText>
@@ -131,16 +133,9 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
         />
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: ApTheme.Spacing.md,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row' }}>
+      <View className="flex-row justify-between items-center mt-4">
+        <View className="flex-row items-center">
+          <View className="flex-row">
             {item.members.slice(0, 3).map((member, index) => (
               <View
                 key={member.id}
@@ -151,14 +146,10 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
             ))}
             {item.members.length > 3 && (
               <View
+                className="w-6 h-6 rounded-full items-center justify-center"
                 style={{
                   marginLeft: -10,
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
                   backgroundColor: ApTheme.Color.secondary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
                 }}
               >
                 <ApText size="xs" color={ApTheme.Color.white}>
@@ -169,17 +160,13 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View className="flex-row items-center">
           <Icon
             name="check-square"
             size={14}
             color={ApTheme.Color.text.muted}
           />
-          <ApText
-            size="sm"
-            color={ApTheme.Color.text.muted}
-            style={{ marginLeft: 4 }}
-          >
+          <ApText size="sm" color={ApTheme.Color.text.muted} className="ml-1">
             {item.completedTasks}/{item.taskCount} tasks
           </ApText>
         </View>
@@ -189,12 +176,8 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
 
   return (
     <ApScreen>
-      <View style={{ paddingTop: ApTheme.Spacing.md }}>
-        <ApText
-          size="xl"
-          weight="bold"
-          style={{ marginBottom: ApTheme.Spacing.md }}
-        >
+      <View className="pt-4">
+        <ApText size="xl" weight="bold" className="mb-4">
           Projects
         </ApText>
 
@@ -205,25 +188,17 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
           leftIcon="search"
         />
 
-        <View
-          style={{
-            flexDirection: 'row',
-            marginBottom: ApTheme.Spacing.md,
-          }}
-        >
+        <View className="flex-row mb-4">
           {filters.map(filter => (
             <TouchableOpacity
               key={filter.key}
               onPress={() => setActiveFilter(filter.key)}
+              className="px-4 py-2 rounded-full mr-2"
               style={{
-                paddingHorizontal: ApTheme.Spacing.md,
-                paddingVertical: ApTheme.Spacing.sm,
-                borderRadius: ApTheme.BorderRadius.full,
                 backgroundColor:
                   activeFilter === filter.key
                     ? ApTheme.Color.primary
                     : ApTheme.Color.border.light,
-                marginRight: ApTheme.Spacing.sm,
               }}
             >
               <ApText
@@ -232,7 +207,7 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
                 color={
                   activeFilter === filter.key
                     ? ApTheme.Color.white
-                    : ApTheme.Color.text.secondary
+                    : colors.text.secondary
                 }
               >
                 {filter.label}
@@ -248,12 +223,12 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
-            <View style={{ alignItems: 'center', paddingTop: 60 }}>
+            <View className="items-center pt-16">
               <Icon name="folder" size={48} color={ApTheme.Color.text.muted} />
               <ApText
                 size="md"
                 color={ApTheme.Color.text.muted}
-                style={{ marginTop: ApTheme.Spacing.md }}
+                className="mt-4"
               >
                 No projects found
               </ApText>

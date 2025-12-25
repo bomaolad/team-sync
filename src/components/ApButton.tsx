@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   View,
 } from 'react-native';
-import { ApTheme } from './ApTheme';
 import { ApText } from './ApText';
 
 interface ApButtonProps extends TouchableOpacityProps {
@@ -19,6 +18,52 @@ interface ApButtonProps extends TouchableOpacityProps {
   className?: string;
 }
 
+const COLORS = {
+  primary: '#2563EB',
+  secondary: '#64748B',
+  danger: '#EF4444',
+  white: '#FFFFFF',
+};
+
+const sizeClasses = {
+  sm: 'h-9 px-3',
+  md: 'h-12 px-4',
+  lg: 'h-14 px-5',
+};
+
+const variantConfig = {
+  primary: {
+    bgColor: COLORS.primary,
+    borderColor: COLORS.primary,
+    textColor: COLORS.white,
+    hasBorder: false,
+  },
+  secondary: {
+    bgColor: COLORS.secondary,
+    borderColor: COLORS.secondary,
+    textColor: COLORS.white,
+    hasBorder: false,
+  },
+  outline: {
+    bgColor: 'transparent',
+    borderColor: COLORS.primary,
+    textColor: COLORS.primary,
+    hasBorder: true,
+  },
+  ghost: {
+    bgColor: 'transparent',
+    borderColor: 'transparent',
+    textColor: COLORS.primary,
+    hasBorder: false,
+  },
+  danger: {
+    bgColor: COLORS.danger,
+    borderColor: COLORS.danger,
+    textColor: COLORS.white,
+    hasBorder: false,
+  },
+};
+
 export const ApButton: React.FC<ApButtonProps> = ({
   title,
   variant = 'primary',
@@ -29,83 +74,45 @@ export const ApButton: React.FC<ApButtonProps> = ({
   iconPosition = 'left',
   fullWidth = false,
   style,
+  className = '',
   ...props
 }) => {
-  const sizeStyles = {
-    sm: { height: 36, paddingHorizontal: 12 },
-    md: { height: 48, paddingHorizontal: 16 },
-    lg: { height: 56, paddingHorizontal: 20 },
-  };
-
-  const variantStyles = {
-    primary: {
-      backgroundColor: ApTheme.Color.primary,
-      borderColor: ApTheme.Color.primary,
-      textColor: ApTheme.Color.white,
-    },
-    secondary: {
-      backgroundColor: ApTheme.Color.secondary,
-      borderColor: ApTheme.Color.secondary,
-      textColor: ApTheme.Color.white,
-    },
-    outline: {
-      backgroundColor: 'transparent',
-      borderColor: ApTheme.Color.primary,
-      textColor: ApTheme.Color.primary,
-    },
-    ghost: {
-      backgroundColor: 'transparent',
-      borderColor: 'transparent',
-      textColor: ApTheme.Color.primary,
-    },
-    danger: {
-      backgroundColor: ApTheme.Color.danger,
-      borderColor: ApTheme.Color.danger,
-      textColor: ApTheme.Color.white,
-    },
-  };
-
-  const currentVariant = variantStyles[variant];
-  const currentSize = sizeStyles[size];
+  const config = variantConfig[variant];
   const isDisabled = disabled || loading;
 
   return (
     <TouchableOpacity
       disabled={isDisabled}
+      className={`flex-row items-center justify-center rounded-lg ${
+        sizeClasses[size]
+      } ${fullWidth ? 'w-full' : ''} ${className}`}
       style={[
         {
-          height: currentSize.height,
-          paddingHorizontal: currentSize.paddingHorizontal,
-          backgroundColor: currentVariant.backgroundColor,
-          borderColor: currentVariant.borderColor,
-          borderWidth: variant === 'outline' ? 1.5 : 0,
-          borderRadius: ApTheme.BorderRadius.md,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
+          backgroundColor: config.bgColor,
+          borderColor: config.borderColor,
+          borderWidth: config.hasBorder ? 1.5 : 0,
           opacity: isDisabled ? 0.6 : 1,
-          width: fullWidth ? '100%' : undefined,
         },
         style,
       ]}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={currentVariant.textColor} size="small" />
+        <ActivityIndicator color={config.textColor} size="small" />
       ) : (
         <>
           {icon && iconPosition === 'left' && (
-            <View style={{ marginRight: ApTheme.Spacing.sm }}>{icon}</View>
+            <View className="mr-2">{icon}</View>
           )}
           <ApText
             weight="semibold"
             size={size === 'sm' ? 'sm' : 'md'}
-            color={currentVariant.textColor}
+            color={config.textColor}
           >
             {title}
           </ApText>
           {icon && iconPosition === 'right' && (
-            <View style={{ marginLeft: ApTheme.Spacing.sm }}>{icon}</View>
+            <View className="ml-2">{icon}</View>
           )}
         </>
       )}

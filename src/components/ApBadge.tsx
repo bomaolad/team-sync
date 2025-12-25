@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import { ApTheme } from './ApTheme';
 import { ApText } from './ApText';
+import { ApTheme } from './ApTheme';
 
 type BadgeVariant =
   | 'default'
@@ -22,6 +22,20 @@ interface ApBadgeProps extends ViewProps {
   className?: string;
 }
 
+const VARIANT_COLORS = {
+  default: ApTheme.Color.secondary,
+  primary: ApTheme.Color.primary,
+  success: ApTheme.Color.success,
+  warning: ApTheme.Color.warning,
+  danger: ApTheme.Color.danger,
+  info: ApTheme.Color.info,
+};
+
+const sizeClasses = {
+  sm: 'px-2 py-1',
+  md: 'px-3 py-1.5',
+};
+
 export const ApBadge: React.FC<ApBadgeProps> = ({
   label,
   variant = 'default',
@@ -29,6 +43,7 @@ export const ApBadge: React.FC<ApBadgeProps> = ({
   priority,
   size = 'sm',
   style,
+  className = '',
   ...props
 }) => {
   const getBackgroundColor = () => {
@@ -38,33 +53,13 @@ export const ApBadge: React.FC<ApBadgeProps> = ({
     if (priority) {
       return ApTheme.Color.priority[priority];
     }
-    const variantColors = {
-      default: ApTheme.Color.secondary,
-      primary: ApTheme.Color.primary,
-      success: ApTheme.Color.success,
-      warning: ApTheme.Color.warning,
-      danger: ApTheme.Color.danger,
-      info: ApTheme.Color.info,
-    };
-    return variantColors[variant];
-  };
-
-  const sizeStyles = {
-    sm: { paddingHorizontal: 8, paddingVertical: 4 },
-    md: { paddingHorizontal: 12, paddingVertical: 6 },
+    return VARIANT_COLORS[variant];
   };
 
   return (
     <View
-      style={[
-        {
-          backgroundColor: getBackgroundColor(),
-          borderRadius: ApTheme.BorderRadius.full,
-          ...sizeStyles[size],
-          alignSelf: 'flex-start',
-        },
-        style,
-      ]}
+      className={`rounded-full self-start ${sizeClasses[size]} ${className}`}
+      style={[{ backgroundColor: getBackgroundColor() }, style]}
       {...props}
     >
       <ApText

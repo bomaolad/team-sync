@@ -12,6 +12,7 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface TeamListScreenProps {
   navigation: any;
@@ -68,6 +69,7 @@ const mockMembers = [
 export const TeamListScreen: React.FC<TeamListScreenProps> = ({
   navigation,
 }) => {
+  const { colors } = useAppTheme();
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'member' | 'viewer'>('member');
@@ -92,11 +94,11 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
   };
 
   const renderMemberCard = ({ item }: { item: (typeof mockMembers)[0] }) => (
-    <ApCard padding="md" style={{ marginBottom: ApTheme.Spacing.sm }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <ApCard padding="md" className="mb-2">
+      <View className="flex-row items-center">
         <ApAvatar source={item.avatar} name={item.name} size="lg" />
-        <View style={{ flex: 1, marginLeft: ApTheme.Spacing.md }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View className="flex-1 ml-4">
+          <View className="flex-row items-center">
             <ApText size="md" weight="semibold">
               {item.name}
             </ApText>
@@ -104,21 +106,17 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
               label={item.role}
               variant={getRoleBadgeVariant(item.role) as any}
               size="sm"
-              style={{ marginLeft: ApTheme.Spacing.sm }}
+              className="ml-2"
             />
           </View>
-          <ApText size="sm" color={ApTheme.Color.text.secondary}>
+          <ApText size="sm" color={colors.text.secondary}>
             {item.jobTitle}
           </ApText>
-          <ApText
-            size="xs"
-            color={ApTheme.Color.text.muted}
-            style={{ marginTop: 2 }}
-          >
+          <ApText size="xs" color={ApTheme.Color.text.muted} className="mt-0.5">
             {item.email}
           </ApText>
         </View>
-        <View style={{ alignItems: 'center' }}>
+        <View className="items-center">
           <ApText size="lg" weight="bold" color={ApTheme.Color.primary}>
             {item.tasksCompleted}
           </ApText>
@@ -132,35 +130,21 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
 
   return (
     <ApScreen>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingTop: ApTheme.Spacing.md,
-          marginBottom: ApTheme.Spacing.lg,
-        }}
-      >
+      <View className="flex-row justify-between items-center pt-4 mb-6">
         <ApText size="xl" weight="bold">
           Team
         </ApText>
         <TouchableOpacity
           onPress={() => setShowInviteModal(true)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: ApTheme.Color.primary,
-            paddingHorizontal: ApTheme.Spacing.md,
-            paddingVertical: ApTheme.Spacing.sm,
-            borderRadius: ApTheme.BorderRadius.md,
-          }}
+          className="flex-row items-center px-4 py-2 rounded-lg"
+          style={{ backgroundColor: ApTheme.Color.primary }}
         >
           <Icon name="user-plus" size={16} color={ApTheme.Color.white} />
           <ApText
             size="sm"
             weight="semibold"
             color={ApTheme.Color.white}
-            style={{ marginLeft: 6 }}
+            className="ml-1.5"
           >
             Invite
           </ApText>
@@ -168,34 +152,26 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
       </View>
 
       <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: ApTheme.Color.primary + '15',
-          borderRadius: ApTheme.BorderRadius.lg,
-          padding: ApTheme.Spacing.md,
-          marginBottom: ApTheme.Spacing.lg,
-        }}
+        className="flex-row rounded-xl p-4 mb-6"
+        style={{ backgroundColor: ApTheme.Color.primary + '15' }}
       >
-        <View style={{ flex: 1, alignItems: 'center' }}>
+        <View className="flex-1 items-center">
           <ApText size="xxl" weight="bold" color={ApTheme.Color.primary}>
             {mockMembers.length}
           </ApText>
-          <ApText size="sm" color={ApTheme.Color.text.secondary}>
+          <ApText size="sm" color={colors.text.secondary}>
             Members
           </ApText>
         </View>
         <View
-          style={{
-            width: 1,
-            backgroundColor: ApTheme.Color.border.light,
-            marginHorizontal: ApTheme.Spacing.md,
-          }}
+          className="w-px mx-4"
+          style={{ backgroundColor: ApTheme.Color.border.light }}
         />
-        <View style={{ flex: 1, alignItems: 'center' }}>
+        <View className="flex-1 items-center">
           <ApText size="xxl" weight="bold" color={ApTheme.Color.success}>
             {mockMembers.reduce((sum, m) => sum + m.tasksCompleted, 0)}
           </ApText>
-          <ApText size="sm" color={ApTheme.Color.text.secondary}>
+          <ApText size="sm" color={colors.text.secondary}>
             Tasks Done
           </ApText>
         </View>
@@ -213,11 +189,7 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
         visible={showInviteModal}
         onClose={() => setShowInviteModal(false)}
       >
-        <ApText
-          size="lg"
-          weight="bold"
-          style={{ marginBottom: ApTheme.Spacing.md }}
-        >
+        <ApText size="lg" weight="bold" className="mb-4">
           Invite Team Member
         </ApText>
 
@@ -231,29 +203,19 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
           leftIcon="mail"
         />
 
-        <ApText
-          size="sm"
-          weight="medium"
-          style={{ marginBottom: ApTheme.Spacing.sm }}
-        >
+        <ApText size="sm" weight="medium" className="mb-2">
           Role
         </ApText>
-        <View
-          style={{ flexDirection: 'row', marginBottom: ApTheme.Spacing.lg }}
-        >
+        <View className="flex-row mb-6">
           <TouchableOpacity
             onPress={() => setInviteRole('member')}
+            className="flex-1 py-2 rounded-lg items-center mr-2"
             style={{
-              flex: 1,
-              paddingVertical: ApTheme.Spacing.sm,
-              borderRadius: ApTheme.BorderRadius.md,
               borderWidth: 2,
               borderColor:
                 inviteRole === 'member'
                   ? ApTheme.Color.primary
                   : ApTheme.Color.border.light,
-              alignItems: 'center',
-              marginRight: ApTheme.Spacing.sm,
             }}
           >
             <ApText
@@ -262,7 +224,7 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
               color={
                 inviteRole === 'member'
                   ? ApTheme.Color.primary
-                  : ApTheme.Color.text.secondary
+                  : colors.text.secondary
               }
             >
               Member
@@ -270,16 +232,13 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setInviteRole('viewer')}
+            className="flex-1 py-2 rounded-lg items-center"
             style={{
-              flex: 1,
-              paddingVertical: ApTheme.Spacing.sm,
-              borderRadius: ApTheme.BorderRadius.md,
               borderWidth: 2,
               borderColor:
                 inviteRole === 'viewer'
                   ? ApTheme.Color.primary
                   : ApTheme.Color.border.light,
-              alignItems: 'center',
             }}
           >
             <ApText
@@ -288,7 +247,7 @@ export const TeamListScreen: React.FC<TeamListScreenProps> = ({
               color={
                 inviteRole === 'viewer'
                   ? ApTheme.Color.primary
-                  : ApTheme.Color.text.secondary
+                  : colors.text.secondary
               }
             >
               Viewer

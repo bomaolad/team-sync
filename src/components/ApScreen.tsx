@@ -1,7 +1,7 @@
 import React from 'react';
 import { StatusBar, View, ViewProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ApTheme } from './ApTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ApScreenProps extends ViewProps {
   backgroundColor?: string;
@@ -10,12 +10,11 @@ interface ApScreenProps extends ViewProps {
   className?: string;
 }
 
-import { useAppTheme } from '../hooks/useAppTheme';
-
 export const ApScreen: React.FC<ApScreenProps> = ({
   children,
   backgroundColor,
   statusBarStyle,
+  className = '',
   style,
   ...props
 }) => {
@@ -27,20 +26,15 @@ export const ApScreen: React.FC<ApScreenProps> = ({
 
   return (
     <SafeAreaView
-      style={[
-        {
-          flex: 1,
-          backgroundColor: resolvedBackgroundColor,
-        },
-        style,
-      ]}
+      className={`flex-1 ${className}`}
+      style={[{ backgroundColor: resolvedBackgroundColor }, style]}
       {...props}
     >
       <StatusBar
         barStyle={resolvedStatusBarStyle}
         backgroundColor={resolvedBackgroundColor}
       />
-      <View style={{ flex: 1, paddingHorizontal: 16 }}>{children}</View>
+      <View className="flex-1 px-4">{children}</View>
     </SafeAreaView>
   );
 };

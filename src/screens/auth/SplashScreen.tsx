@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, Image, Dimensions } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { ApTheme, ApText } from '../../components';
-
-const { width, height } = Dimensions.get('window');
 
 interface SplashScreenProps {
   navigation: any;
@@ -20,24 +18,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
 
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: ApTheme.Color.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
+      className="flex-1 items-center justify-center"
+      style={{ backgroundColor: ApTheme.Color.primary }}
     >
-      <View style={{ alignItems: 'center' }}>
+      <View className="items-center">
         <View
-          style={{
-            width: 100,
-            height: 100,
-            borderRadius: 24,
-            backgroundColor: ApTheme.Color.white,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: ApTheme.Spacing.lg,
-          }}
+          className="w-[100px] h-[100px] rounded-3xl items-center justify-center mb-6"
+          style={{ backgroundColor: ApTheme.Color.white }}
         >
           <ApText size="xxxl" weight="bold" color={ApTheme.Color.primary}>
             TS
@@ -51,7 +38,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
         <ApText
           size="md"
           color={ApTheme.Color.white}
-          style={{ marginTop: ApTheme.Spacing.sm, opacity: 0.8 }}
+          className="mt-2 opacity-80"
         >
           Collaborate. Manage. Succeed.
         </ApText>

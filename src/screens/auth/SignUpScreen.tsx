@@ -14,12 +14,14 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface SignUpScreenProps {
   navigation: any;
 }
 
 export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
+  const { colors } = useAppTheme();
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -91,35 +93,28 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <ApScreen backgroundColor={ApTheme.Color.background.light}>
+    <ApScreen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ApScrollView>
-          <View style={{ paddingTop: 40, paddingBottom: 40 }}>
+          <View className="pt-10 pb-10">
             <TouchableOpacity
               onPress={() => navigation.goBack()}
-              style={{ marginBottom: ApTheme.Spacing.lg }}
+              className="mb-6"
             >
-              <Icon
-                name="arrow-left"
-                size={24}
-                color={ApTheme.Color.text.primary}
-              />
+              <Icon name="arrow-left" size={24} color={colors.text.primary} />
             </TouchableOpacity>
 
-            <ApText size="xxl" weight="bold" color={ApTheme.Color.text.primary}>
+            <ApText size="xxl" weight="bold" color={colors.text.primary}>
               Create Account
             </ApText>
 
             <ApText
               size="md"
-              color={ApTheme.Color.text.secondary}
-              style={{
-                marginTop: ApTheme.Spacing.xs,
-                marginBottom: ApTheme.Spacing.xl,
-              }}
+              color={colors.text.secondary}
+              className="mt-1 mb-8"
             >
               Sign up to get started with TeamSync
             </ApText>
@@ -185,17 +180,11 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
 
             <TouchableOpacity
               onPress={() => setAgreeTerms(!agreeTerms)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: ApTheme.Spacing.lg,
-              }}
+              className="flex-row items-center mb-6"
             >
               <View
+                className="w-[22px] h-[22px] rounded-md items-center justify-center mr-2"
                 style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 6,
                   borderWidth: 2,
                   borderColor: errors.terms
                     ? ApTheme.Color.danger
@@ -205,16 +194,13 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
                   backgroundColor: agreeTerms
                     ? ApTheme.Color.primary
                     : ApTheme.Color.transparent,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginRight: ApTheme.Spacing.sm,
                 }}
               >
                 {agreeTerms && (
                   <Icon name="check" size={14} color={ApTheme.Color.white} />
                 )}
               </View>
-              <ApText size="sm" color={ApTheme.Color.text.secondary}>
+              <ApText size="sm" color={colors.text.secondary}>
                 I agree to the{' '}
                 <ApText
                   size="sm"
@@ -238,10 +224,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
               <ApText
                 size="xs"
                 color={ApTheme.Color.danger}
-                style={{
-                  marginTop: -ApTheme.Spacing.sm,
-                  marginBottom: ApTheme.Spacing.md,
-                }}
+                className="-mt-2 mb-4"
               >
                 {errors.terms}
               </ApText>
@@ -254,14 +237,8 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
               fullWidth
             />
 
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                marginTop: ApTheme.Spacing.xl,
-              }}
-            >
-              <ApText size="md" color={ApTheme.Color.text.secondary}>
+            <View className="flex-row justify-center mt-8">
+              <ApText size="md" color={colors.text.secondary}>
                 Already have an account?{' '}
               </ApText>
               <TouchableOpacity onPress={() => navigation.navigate('Login')}>

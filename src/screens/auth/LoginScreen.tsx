@@ -14,12 +14,14 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface LoginScreenProps {
   navigation: any;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+  const { colors } = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,48 +58,31 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     }, 1500);
   };
 
-  const handleGoogleLogin = () => {
-    // Google login will be implemented with backend
-  };
+  const handleGoogleLogin = () => {};
 
   return (
-    <ApScreen backgroundColor={ApTheme.Color.background.light}>
+    <ApScreen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ApScrollView>
-          <View style={{ paddingTop: 60, paddingBottom: 40 }}>
-            <View style={{ alignItems: 'center', marginBottom: 48 }}>
+          <View className="pt-16 pb-10">
+            <View className="items-center mb-12">
               <View
-                style={{
-                  width: 72,
-                  height: 72,
-                  borderRadius: 18,
-                  backgroundColor: ApTheme.Color.primary,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: ApTheme.Spacing.md,
-                }}
+                className="w-[72px] h-[72px] rounded-2xl items-center justify-center mb-4"
+                style={{ backgroundColor: ApTheme.Color.primary }}
               >
                 <ApText size="xl" weight="bold" color={ApTheme.Color.white}>
                   TS
                 </ApText>
               </View>
 
-              <ApText
-                size="xxl"
-                weight="bold"
-                color={ApTheme.Color.text.primary}
-              >
+              <ApText size="xxl" weight="bold" color={colors.text.primary}>
                 Welcome Back
               </ApText>
 
-              <ApText
-                size="md"
-                color={ApTheme.Color.text.secondary}
-                style={{ marginTop: ApTheme.Spacing.xs }}
-              >
+              <ApText size="md" color={colors.text.secondary} className="mt-1">
                 Sign in to continue to TeamSync
               </ApText>
             </View>
@@ -125,10 +110,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
             <TouchableOpacity
               onPress={() => navigation.navigate('ForgotPassword')}
-              style={{
-                alignSelf: 'flex-end',
-                marginBottom: ApTheme.Spacing.lg,
-              }}
+              className="self-end mb-6"
             >
               <ApText size="sm" weight="medium" color={ApTheme.Color.primary}>
                 Forgot Password?
@@ -140,36 +122,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               onPress={handleLogin}
               loading={loading}
               fullWidth
-              style={{ marginBottom: ApTheme.Spacing.md }}
+              className="mb-4"
             />
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginVertical: ApTheme.Spacing.lg,
-              }}
-            >
+            <View className="flex-row items-center my-6">
               <View
-                style={{
-                  flex: 1,
-                  height: 1,
-                  backgroundColor: ApTheme.Color.border.light,
-                }}
+                className="flex-1 h-px"
+                style={{ backgroundColor: colors.border }}
               />
-              <ApText
-                size="sm"
-                color={ApTheme.Color.text.muted}
-                style={{ marginHorizontal: ApTheme.Spacing.md }}
-              >
+              <ApText size="sm" color={colors.text.muted} className="mx-4">
                 OR
               </ApText>
               <View
-                style={{
-                  flex: 1,
-                  height: 1,
-                  backgroundColor: ApTheme.Color.border.light,
-                }}
+                className="flex-1 h-px"
+                style={{ backgroundColor: colors.border }}
               />
             </View>
 
@@ -183,14 +149,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               }
             />
 
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'center',
-                marginTop: ApTheme.Spacing.xl,
-              }}
-            >
-              <ApText size="md" color={ApTheme.Color.text.secondary}>
+            <View className="flex-row justify-center mt-8">
+              <ApText size="md" color={colors.text.secondary}>
                 Don't have an account?{' '}
               </ApText>
               <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>

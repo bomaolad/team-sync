@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Image,
 } from 'react-native';
 import {
   ApTheme,
@@ -16,6 +15,7 @@ import {
   ApAvatar,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface CreateProfileScreenProps {
   navigation: any;
@@ -24,6 +24,7 @@ interface CreateProfileScreenProps {
 export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
   navigation,
 }) => {
+  const { colors } = useAppTheme();
   const [formData, setFormData] = useState({
     fullName: '',
     jobTitle: '',
@@ -39,9 +40,7 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
     }
   };
 
-  const handleSelectAvatar = () => {
-    // Image picker will be implemented - for now just simulate
-  };
+  const handleSelectAvatar = () => {};
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -73,27 +72,16 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
   };
 
   return (
-    <ApScreen backgroundColor={ApTheme.Color.background.light}>
+    <ApScreen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ApScrollView>
-          <View style={{ paddingTop: 40, paddingBottom: 40 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: ApTheme.Spacing.xl,
-              }}
-            >
+          <View className="pt-10 pb-10">
+            <View className="flex-row justify-between items-center mb-8">
               <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Icon
-                  name="arrow-left"
-                  size={24}
-                  color={ApTheme.Color.text.primary}
-                />
+                <Icon name="arrow-left" size={24} color={colors.text.primary} />
               </TouchableOpacity>
 
               <TouchableOpacity onPress={handleSkip}>
@@ -103,42 +91,30 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
               </TouchableOpacity>
             </View>
 
-            <ApText size="xxl" weight="bold" color={ApTheme.Color.text.primary}>
+            <ApText size="xxl" weight="bold" color={colors.text.primary}>
               Set Up Your Profile
             </ApText>
 
             <ApText
               size="md"
-              color={ApTheme.Color.text.secondary}
-              style={{
-                marginTop: ApTheme.Spacing.xs,
-                marginBottom: ApTheme.Spacing.xl,
-              }}
+              color={colors.text.secondary}
+              className="mt-1 mb-8"
             >
               Let your team know who you are
             </ApText>
 
-            <View
-              style={{ alignItems: 'center', marginBottom: ApTheme.Spacing.xl }}
-            >
+            <View className="items-center mb-8">
               <TouchableOpacity onPress={handleSelectAvatar}>
-                <View style={{ position: 'relative' }}>
+                <View className="relative">
                   <ApAvatar
                     source={formData.avatar}
                     name={formData.fullName || 'User'}
                     size="xl"
                   />
                   <View
+                    className="absolute bottom-0 right-0 w-7 h-7 rounded-full items-center justify-center"
                     style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      width: 28,
-                      height: 28,
-                      borderRadius: 14,
                       backgroundColor: ApTheme.Color.primary,
-                      justifyContent: 'center',
-                      alignItems: 'center',
                       borderWidth: 2,
                       borderColor: ApTheme.Color.white,
                     }}
@@ -147,11 +123,7 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
                   </View>
                 </View>
               </TouchableOpacity>
-              <ApText
-                size="sm"
-                color={ApTheme.Color.text.secondary}
-                style={{ marginTop: ApTheme.Spacing.sm }}
-              >
+              <ApText size="sm" color={colors.text.secondary} className="mt-2">
                 Tap to upload photo
               </ApText>
             </View>
@@ -179,7 +151,7 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({
               onPress={handleCreateProfile}
               loading={loading}
               fullWidth
-              style={{ marginTop: ApTheme.Spacing.lg }}
+              className="mt-6"
             />
           </View>
         </ApScrollView>

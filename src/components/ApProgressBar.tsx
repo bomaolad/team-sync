@@ -1,17 +1,30 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import { ApTheme } from './ApTheme';
 import { ApText } from './ApText';
 import Svg, { Circle } from 'react-native-svg';
+import { useAppTheme } from '../hooks/useAppTheme';
+import { ApTheme } from './ApTheme';
 
 interface ApProgressBarProps extends ViewProps {
-  progress: number; // 0 to 100
+  progress: number;
   variant?: 'linear' | 'circular';
   size?: 'sm' | 'md' | 'lg';
   color?: string;
   showLabel?: boolean;
   className?: string;
 }
+
+const circularSizeConfig = {
+  sm: { size: 40, stroke: 4 },
+  md: { size: 56, stroke: 5 },
+  lg: { size: 80, stroke: 6 },
+};
+
+const linearHeightConfig = {
+  sm: 4,
+  md: 6,
+  lg: 8,
+};
 
 export const ApProgressBar: React.FC<ApProgressBarProps> = ({
   progress,
@@ -20,15 +33,16 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
   color = ApTheme.Color.primary,
   showLabel = false,
   style,
+  className = '',
   ...props
 }) => {
+  const { colors } = useAppTheme();
   const clampedProgress = Math.min(100, Math.max(0, progress));
 
   if (variant === 'circular') {
-    const sizeMap = { sm: 40, md: 56, lg: 80 };
-    const strokeMap = { sm: 4, md: 5, lg: 6 };
-    const circleSize = sizeMap[size];
-    const strokeWidth = strokeMap[size];
+    const config = circularSizeConfig[size];
+    const circleSize = config.size;
+    const strokeWidth = config.stroke;
     const radius = (circleSize - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset =
@@ -36,10 +50,8 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
 
     return (
       <View
-        style={[
-          { width: circleSize, height: circleSize, position: 'relative' },
-          style,
-        ]}
+        className={`relative ${className}`}
+        style={[{ width: circleSize, height: circleSize }, style]}
         {...props}
       >
         <Svg width={circleSize} height={circleSize}>
@@ -47,7 +59,7 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
             cx={circleSize / 2}
             cy={circleSize / 2}
             r={radius}
-            stroke={ApTheme.Color.border.light}
+            stroke={colors.border}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -65,22 +77,8 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
           />
         </Svg>
         {showLabel && (
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <ApText
-              size="xs"
-              weight="semibold"
-              color={ApTheme.Color.text.primary}
-            >
+          <View className="absolute inset-0 items-center justify-center">
+            <ApText size="xs" weight="semibold" color={colors.text.primary}>
               {Math.round(clampedProgress)}%
             </ApText>
           </View>
@@ -89,22 +87,21 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
     );
   }
 
-  const heightMap = { sm: 4, md: 6, lg: 8 };
-  const barHeight = heightMap[size];
+  const barHeight = linearHeightConfig[size];
 
   return (
-    <View style={style} {...props}>
+    <View className={className} style={style} {...props}>
       <View
+        className="overflow-hidden"
         style={{
           height: barHeight,
-          backgroundColor: ApTheme.Color.border.light,
+          backgroundColor: colors.border,
           borderRadius: barHeight / 2,
-          overflow: 'hidden',
         }}
       >
         <View
+          className="h-full"
           style={{
-            height: '100%',
             width: `${clampedProgress}%`,
             backgroundColor: color,
             borderRadius: barHeight / 2,
@@ -112,11 +109,7 @@ export const ApProgressBar: React.FC<ApProgressBarProps> = ({
         />
       </View>
       {showLabel && (
-        <ApText
-          size="xs"
-          color={ApTheme.Color.text.secondary}
-          style={{ marginTop: ApTheme.Spacing.xs }}
-        >
+        <ApText size="xs" color={colors.text.secondary} className="mt-1">
           {Math.round(clampedProgress)}%
         </ApText>
       )}

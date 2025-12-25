@@ -9,6 +9,7 @@ import {
   ApBadge,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
+import { useAppTheme } from '../../hooks/useAppTheme';
 
 interface ProjectDetailScreenProps {
   navigation: any;
@@ -26,6 +27,17 @@ interface Task {
   status: TaskStatus;
   dueDate: string;
 }
+
+const statusConfig: Record<TaskStatus, { label: string; color: string }> = {
+  todo: { label: 'To Do', color: ApTheme.Color.status.todo },
+  inProgress: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
+  underReview: {
+    label: 'Under Review',
+    color: ApTheme.Color.status.underReview,
+  },
+  recheck: { label: 'Recheck', color: ApTheme.Color.status.recheck },
+  done: { label: 'Done', color: ApTheme.Color.status.done },
+};
 
 const mockTasks: Task[] = [
   {
@@ -94,17 +106,6 @@ const mockTasks: Task[] = [
   },
 ];
 
-const statusConfig: Record<TaskStatus, { label: string; color: string }> = {
-  todo: { label: 'To Do', color: ApTheme.Color.status.todo },
-  inProgress: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
-  underReview: {
-    label: 'Under Review',
-    color: ApTheme.Color.status.underReview,
-  },
-  recheck: { label: 'Recheck', color: ApTheme.Color.status.recheck },
-  done: { label: 'Done', color: ApTheme.Color.status.done },
-};
-
 const statusOrder: TaskStatus[] = [
   'todo',
   'inProgress',
@@ -117,6 +118,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   navigation,
   route,
 }) => {
+  const { colors } = useAppTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const projectTitle = 'Website Redesign';
 
@@ -128,19 +130,12 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       key={task.id}
       padding="sm"
       onPress={() => navigation.navigate('TaskDetail', { taskId: task.id })}
-      style={{ marginBottom: ApTheme.Spacing.sm }}
+      className="mb-2"
     >
       <ApText size="sm" weight="medium" numberOfLines={2}>
         {task.title}
       </ApText>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: ApTheme.Spacing.sm,
-        }}
-      >
+      <View className="flex-row justify-between items-center mt-2">
         <ApAvatar name={task.assignee.name} size="xs" />
         <ApBadge priority={task.priority} label={task.priority} size="sm" />
       </View>
@@ -158,22 +153,11 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         if (tasks.length === 0) return null;
 
         return (
-          <View style={{ marginBottom: ApTheme.Spacing.lg }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: ApTheme.Spacing.sm,
-              }}
-            >
+          <View className="mb-6">
+            <View className="flex-row items-center mb-2">
               <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: statusConfig[status].color,
-                  marginRight: ApTheme.Spacing.sm,
-                }}
+                className="w-3 h-3 rounded-full mr-2"
+                style={{ backgroundColor: statusConfig[status].color }}
               />
               <ApText size="md" weight="semibold">
                 {statusConfig[status].label}
@@ -181,7 +165,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
               <ApText
                 size="sm"
                 color={ApTheme.Color.text.muted}
-                style={{ marginLeft: 8 }}
+                className="ml-2"
               >
                 {tasks.length}
               </ApText>
@@ -197,64 +181,37 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingRight: ApTheme.Spacing.md }}
+      contentContainerStyle={{ paddingRight: 16 }}
     >
       {statusOrder.map(status => {
         const tasks = getTasksByStatus(status);
         return (
-          <View
-            key={status}
-            style={{
-              width: 260,
-              marginRight: ApTheme.Spacing.md,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                marginBottom: ApTheme.Spacing.sm,
-                paddingHorizontal: ApTheme.Spacing.sm,
-              }}
-            >
+          <View key={status} className="w-[260px] mr-4">
+            <View className="flex-row items-center mb-2 px-2">
               <View
-                style={{
-                  width: 12,
-                  height: 12,
-                  borderRadius: 6,
-                  backgroundColor: statusConfig[status].color,
-                  marginRight: ApTheme.Spacing.sm,
-                }}
+                className="w-3 h-3 rounded-full mr-2"
+                style={{ backgroundColor: statusConfig[status].color }}
               />
               <ApText size="md" weight="semibold">
                 {statusConfig[status].label}
               </ApText>
               <View
-                style={{
-                  marginLeft: 8,
-                  backgroundColor: ApTheme.Color.border.light,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                  borderRadius: 10,
-                }}
+                className="ml-2 px-2 py-0.5 rounded-xl"
+                style={{ backgroundColor: ApTheme.Color.border.light }}
               >
-                <ApText size="xs" color={ApTheme.Color.text.secondary}>
+                <ApText size="xs" color={colors.text.secondary}>
                   {tasks.length}
                 </ApText>
               </View>
             </View>
             <View
-              style={{
-                backgroundColor: ApTheme.Color.background.light,
-                borderRadius: ApTheme.BorderRadius.lg,
-                padding: ApTheme.Spacing.sm,
-                minHeight: 200,
-              }}
+              className="rounded-xl p-2 min-h-[200px]"
+              style={{ backgroundColor: ApTheme.Color.background.light }}
             >
               {tasks.length > 0 ? (
                 tasks.map(renderTaskCard)
               ) : (
-                <View style={{ alignItems: 'center', paddingVertical: 40 }}>
+                <View className="items-center py-10">
                   <ApText size="sm" color={ApTheme.Color.text.muted}>
                     No tasks
                   </ApText>
@@ -269,54 +226,30 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 
   return (
     <ApScreen>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingTop: ApTheme.Spacing.md,
-          marginBottom: ApTheme.Spacing.md,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={{ marginRight: ApTheme.Spacing.md }}
-        >
-          <Icon
-            name="arrow-left"
-            size={24}
-            color={ApTheme.Color.text.primary}
-          />
+      <View className="flex-row items-center pt-4 mb-4">
+        <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4">
+          <Icon name="arrow-left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <ApText size="lg" weight="bold" style={{ flex: 1 }} numberOfLines={1}>
+        <ApText size="lg" weight="bold" className="flex-1" numberOfLines={1}>
           {projectTitle}
         </ApText>
         <TouchableOpacity>
-          <Icon
-            name="more-vertical"
-            size={24}
-            color={ApTheme.Color.text.primary}
-          />
+          <Icon name="more-vertical" size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
 
       <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: ApTheme.Color.border.light,
-          borderRadius: ApTheme.BorderRadius.md,
-          padding: 4,
-          marginBottom: ApTheme.Spacing.md,
-        }}
+        className="flex-row rounded-lg p-1 mb-4"
+        style={{ backgroundColor: ApTheme.Color.border.light }}
       >
         <TouchableOpacity
           onPress={() => setViewMode('list')}
+          className="flex-1 py-2 rounded items-center"
           style={{
-            flex: 1,
-            paddingVertical: ApTheme.Spacing.sm,
-            borderRadius: ApTheme.BorderRadius.sm,
             backgroundColor:
-              viewMode === 'list' ? ApTheme.Color.white : 'transparent',
-            alignItems: 'center',
+              viewMode === 'list'
+                ? ApTheme.Color.white
+                : ApTheme.Color.transparent,
           }}
         >
           <ApText
@@ -325,7 +258,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             color={
               viewMode === 'list'
                 ? ApTheme.Color.primary
-                : ApTheme.Color.text.secondary
+                : colors.text.secondary
             }
           >
             List View
@@ -333,13 +266,12 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setViewMode('board')}
+          className="flex-1 py-2 rounded items-center"
           style={{
-            flex: 1,
-            paddingVertical: ApTheme.Spacing.sm,
-            borderRadius: ApTheme.BorderRadius.sm,
             backgroundColor:
-              viewMode === 'board' ? ApTheme.Color.white : 'transparent',
-            alignItems: 'center',
+              viewMode === 'board'
+                ? ApTheme.Color.white
+                : ApTheme.Color.transparent,
           }}
         >
           <ApText
@@ -348,7 +280,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             color={
               viewMode === 'board'
                 ? ApTheme.Color.primary
-                : ApTheme.Color.text.secondary
+                : colors.text.secondary
             }
           >
             Board View
@@ -356,7 +288,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={{ flex: 1 }}>
+      <View className="flex-1">
         {viewMode === 'list' ? renderListView() : renderBoardView()}
       </View>
     </ApScreen>
