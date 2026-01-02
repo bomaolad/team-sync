@@ -43,7 +43,7 @@ const mockTasks: Task[] = [
   {
     id: '1',
     title: 'Design homepage layout',
-    assignee: { id: '1', name: 'John Doe' },
+    assignee: { id: '1', name: 'Muhammed Bello' },
     priority: 'high',
     status: 'todo',
     dueDate: 'Dec 24',
@@ -67,7 +67,7 @@ const mockTasks: Task[] = [
   {
     id: '4',
     title: 'Setup database schema',
-    assignee: { id: '1', name: 'John Doe' },
+    assignee: { id: '1', name: 'Muhammed Bello' },
     priority: 'medium',
     status: 'inProgress',
     dueDate: 'Dec 26',
@@ -91,7 +91,7 @@ const mockTasks: Task[] = [
   {
     id: '7',
     title: 'Write unit tests',
-    assignee: { id: '1', name: 'John Doe' },
+    assignee: { id: '1', name: 'Muhammed Bello' },
     priority: 'medium',
     status: 'done',
     dueDate: 'Dec 20',

@@ -26,7 +26,7 @@ const mockProjects = [
     taskCount: 24,
     completedTasks: 16,
     members: [
-      { id: '1', name: 'John Doe' },
+      { id: '1', name: 'Muhammed Bello' },
       { id: '2', name: 'Jane Smith' },
       { id: '3', name: 'Bob Wilson' },
     ],
@@ -40,7 +40,7 @@ const mockProjects = [
     taskCount: 32,
     completedTasks: 13,
     members: [
-      { id: '1', name: 'John Doe' },
+      { id: '1', name: 'Muhammed Bello' },
       { id: '4', name: 'Alice Brown' },
     ],
     status: 'active',
@@ -67,7 +67,7 @@ const mockProjects = [
     progress: 100,
     taskCount: 8,
     completedTasks: 8,
-    members: [{ id: '1', name: 'John Doe' }],
+    members: [{ id: '1', name: 'Muhammed Bello' }],
     status: 'completed',
   },
 ];

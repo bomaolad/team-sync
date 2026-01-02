@@ -45,7 +45,7 @@ const mockTask = {
     "Create a modern, eye-catching banner for the homepage. Should include the company logo, tagline, and a CTA button. Use the brand colors and ensure it's responsive.",
   status: 'inProgress' as TaskStatus,
   priority: 'high' as const,
-  assignee: { id: '1', name: 'John Doe' },
+  assignee: { id: '1', name: 'Muhammed Bello' },
   startDate: 'Dec 20, 2024',
   dueDate: 'Dec 25, 2024',
   project: 'Website Redesign',
@@ -69,7 +69,7 @@ const mockTask = {
     },
     {
       id: '2',
-      user: { id: '1', name: 'John Doe' },
+      user: { id: '1', name: 'Muhammed Bello' },
       text: "Sure, I'll increase the size and add a subtle animation.",
       timestamp: '1 hour ago',
       isSystem: false,
@@ -77,7 +77,7 @@ const mockTask = {
     {
       id: '3',
       user: { id: '1', name: 'System' },
-      text: 'John changed status to In Progress',
+      text: 'Muhammed changed status to In Progress',
       timestamp: '3 hours ago',
       isSystem: true,
     },

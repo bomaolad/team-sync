@@ -21,7 +21,7 @@ interface TeamListScreenProps {
 const mockMembers = [
   {
     id: '1',
-    name: 'John Doe',
+    name: 'Muhammed Bello',
     email: 'john@teamsync.com',
     role: 'admin',
     jobTitle: 'Project Manager',

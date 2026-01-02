@@ -132,11 +132,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               Welcome back,
             </ApText>
             <ApText size="xl" weight="bold">
-              John Doe 👋
+              Muhammed Bello 👋
             </ApText>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-            <ApAvatar name="John Doe" size="md" />
+            <ApAvatar name="Muhammed Bello" size="md" />
           </TouchableOpacity>
         </View>
 

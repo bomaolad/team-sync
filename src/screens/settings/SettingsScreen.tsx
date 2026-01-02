@@ -27,7 +27,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   });
 
   const user = {
-    name: 'John Doe',
+    name: 'Muhammed Bello',
     email: 'john@teamsync.com',
     role: 'Admin',
     jobTitle: 'Project Manager',
