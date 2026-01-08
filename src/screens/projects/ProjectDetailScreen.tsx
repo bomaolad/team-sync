@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import {
   ApTheme,
   ApText,
@@ -7,9 +13,16 @@ import {
   ApCard,
   ApAvatar,
   ApBadge,
+  ApFAB,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme } from '../../hooks/useAppTheme';
+import {
+  useAppTheme,
+  useProject,
+  useTasks,
+  useProjectProgress,
+} from '../../hooks';
+import { Task, TaskStatus as TaskStatusType, TaskPriority } from '../../types';
 
 interface ProjectDetailScreenProps {
   navigation: any;
@@ -17,102 +30,32 @@ interface ProjectDetailScreenProps {
 }
 
 type ViewMode = 'list' | 'board';
-type TaskStatus = 'todo' | 'inProgress' | 'underReview' | 'recheck' | 'done';
 
-interface Task {
-  id: string;
-  title: string;
-  assignee: { id: string; name: string };
-  priority: 'low' | 'medium' | 'high';
-  status: TaskStatus;
-  dueDate: string;
-}
-
-const statusConfig: Record<TaskStatus, { label: string; color: string }> = {
-  todo: { label: 'To Do', color: ApTheme.Color.status.todo },
-  inProgress: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
-  underReview: {
+const statusConfig: Record<string, { label: string; color: string }> = {
+  TODO: { label: 'To Do', color: ApTheme.Color.status.todo },
+  IN_PROGRESS: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
+  UNDER_REVIEW: {
     label: 'Under Review',
     color: ApTheme.Color.status.underReview,
   },
-  recheck: { label: 'Recheck', color: ApTheme.Color.status.recheck },
-  done: { label: 'Done', color: ApTheme.Color.status.done },
+  DONE: { label: 'Done', color: ApTheme.Color.status.done },
 };
 
-const mockTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Design homepage layout',
-    assignee: { id: '1', name: 'Muhammed Bello' },
-    priority: 'high',
-    status: 'todo',
-    dueDate: 'Dec 24',
-  },
-  {
-    id: '2',
-    title: 'Implement nav component',
-    assignee: { id: '2', name: 'Jane Smith' },
-    priority: 'medium',
-    status: 'todo',
-    dueDate: 'Dec 25',
-  },
-  {
-    id: '3',
-    title: 'Create API endpoints',
-    assignee: { id: '3', name: 'Bob Wilson' },
-    priority: 'high',
-    status: 'inProgress',
-    dueDate: 'Dec 23',
-  },
-  {
-    id: '4',
-    title: 'Setup database schema',
-    assignee: { id: '1', name: 'Muhammed Bello' },
-    priority: 'medium',
-    status: 'inProgress',
-    dueDate: 'Dec 26',
-  },
-  {
-    id: '5',
-    title: 'Review PR #42',
-    assignee: { id: '2', name: 'Jane Smith' },
-    priority: 'low',
-    status: 'underReview',
-    dueDate: 'Dec 22',
-  },
-  {
-    id: '6',
-    title: 'Fix login bug',
-    assignee: { id: '3', name: 'Bob Wilson' },
-    priority: 'high',
-    status: 'recheck',
-    dueDate: 'Dec 21',
-  },
-  {
-    id: '7',
-    title: 'Write unit tests',
-    assignee: { id: '1', name: 'Muhammed Bello' },
-    priority: 'medium',
-    status: 'done',
-    dueDate: 'Dec 20',
-  },
-  {
-    id: '8',
-    title: 'Update docs',
-    assignee: { id: '2', name: 'Jane Smith' },
-    priority: 'low',
-    status: 'done',
-    dueDate: 'Dec 19',
-  },
+const statusOrder: TaskStatusType[] = [
+  'TODO',
+  'IN_PROGRESS',
+  'UNDER_REVIEW',
+  'DONE',
 ];
 
-const statusOrder: TaskStatus[] = [
-  'todo',
-  'inProgress',
-  'underReview',
-  'recheck',
-  'done',
-];
+const mapPriority = (priority: TaskPriority): 'low' | 'medium' | 'high' => {
+  const priorityMap: Record<TaskPriority, 'low' | 'medium' | 'high'> = {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+  };
+  return priorityMap[priority] || 'medium';
+};
 
 export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   navigation,
@@ -120,10 +63,18 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
 }) => {
   const { colors } = useAppTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const projectTitle = 'Website Redesign';
+  const projectId = route.params?.projectId;
 
-  const getTasksByStatus = (status: TaskStatus) =>
-    mockTasks.filter(task => task.status === status);
+  const { data: project, isLoading: projectLoading } = useProject(projectId);
+  const { data: allTasks = [], isLoading: tasksLoading } = useTasks({
+    projectId,
+  });
+  const { data: progress } = useProjectProgress(projectId);
+
+  const tasks = allTasks.filter((t: Task) => t.projectId === projectId);
+
+  const getTasksByStatus = (status: TaskStatusType) =>
+    tasks.filter((task: Task) => task.status === status);
 
   const renderTaskCard = (task: Task) => (
     <ApCard
@@ -136,8 +87,12 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         {task.title}
       </ApText>
       <View className="flex-row justify-between items-center mt-2">
-        <ApAvatar name={task.assignee.name} size="xs" />
-        <ApBadge priority={task.priority} label={task.priority} size="sm" />
+        <ApAvatar name={task.assignee?.name || 'Unassigned'} size="xs" />
+        <ApBadge
+          priority={mapPriority(task.priority)}
+          label={task.priority.toLowerCase()}
+          size="sm"
+        />
       </View>
     </ApCard>
   );
@@ -147,30 +102,33 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       data={statusOrder}
       keyExtractor={item => item}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={{ paddingBottom: 100 }}
       renderItem={({ item: status }) => {
-        const tasks = getTasksByStatus(status);
-        if (tasks.length === 0) return null;
+        const statusTasks = getTasksByStatus(status);
+        if (statusTasks.length === 0) return null;
 
         return (
           <View className="mb-6">
             <View className="flex-row items-center mb-2">
               <View
                 className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: statusConfig[status].color }}
+                style={{
+                  backgroundColor:
+                    statusConfig[status]?.color || ApTheme.Color.primary,
+                }}
               />
               <ApText size="md" weight="semibold">
-                {statusConfig[status].label}
+                {statusConfig[status]?.label || status}
               </ApText>
               <ApText
                 size="sm"
                 color={ApTheme.Color.text.muted}
                 className="ml-2"
               >
-                {tasks.length}
+                {statusTasks.length}
               </ApText>
             </View>
-            {tasks.map(renderTaskCard)}
+            {statusTasks.map(renderTaskCard)}
           </View>
         );
       }}
@@ -184,23 +142,26 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       contentContainerStyle={{ paddingRight: 16 }}
     >
       {statusOrder.map(status => {
-        const tasks = getTasksByStatus(status);
+        const statusTasks = getTasksByStatus(status);
         return (
           <View key={status} className="w-[260px] mr-4">
             <View className="flex-row items-center mb-2 px-2">
               <View
                 className="w-3 h-3 rounded-full mr-2"
-                style={{ backgroundColor: statusConfig[status].color }}
+                style={{
+                  backgroundColor:
+                    statusConfig[status]?.color || ApTheme.Color.primary,
+                }}
               />
               <ApText size="md" weight="semibold">
-                {statusConfig[status].label}
+                {statusConfig[status]?.label || status}
               </ApText>
               <View
                 className="ml-2 px-2 py-0.5 rounded-xl"
                 style={{ backgroundColor: ApTheme.Color.border.light }}
               >
                 <ApText size="xs" color={colors.text.secondary}>
-                  {tasks.length}
+                  {statusTasks.length}
                 </ApText>
               </View>
             </View>
@@ -208,8 +169,8 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
               className="rounded-xl p-2 min-h-[200px]"
               style={{ backgroundColor: ApTheme.Color.background.light }}
             >
-              {tasks.length > 0 ? (
-                tasks.map(renderTaskCard)
+              {statusTasks.length > 0 ? (
+                statusTasks.map(renderTaskCard)
               ) : (
                 <View className="items-center py-10">
                   <ApText size="sm" color={ApTheme.Color.text.muted}>
@@ -224,6 +185,18 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
     </ScrollView>
   );
 
+  const isLoading = projectLoading || tasksLoading;
+
+  if (isLoading) {
+    return (
+      <ApScreen>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={ApTheme.Color.primary} />
+        </View>
+      </ApScreen>
+    );
+  }
+
   return (
     <ApScreen>
       <View className="flex-row items-center pt-4 mb-4">
@@ -231,12 +204,41 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           <Icon name="arrow-left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
         <ApText size="lg" weight="bold" className="flex-1" numberOfLines={1}>
-          {projectTitle}
+          {project?.name || 'Project'}
         </ApText>
         <TouchableOpacity>
           <Icon name="more-vertical" size={24} color={colors.text.primary} />
         </TouchableOpacity>
       </View>
+
+      {progress && (
+        <View className="flex-row mb-4">
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={ApTheme.Color.primary}>
+              {progress.percentage || 0}%
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              Complete
+            </ApText>
+          </View>
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={ApTheme.Color.success}>
+              {progress.completed || 0}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              Done
+            </ApText>
+          </View>
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={ApTheme.Color.warning}>
+              {progress.inProgress || 0}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              In Progress
+            </ApText>
+          </View>
+        </View>
+      )}
 
       <View
         className="flex-row rounded-lg p-1 mb-4"
@@ -291,6 +293,11 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
       <View className="flex-1">
         {viewMode === 'list' ? renderListView() : renderBoardView()}
       </View>
+
+      <ApFAB
+        icon="plus"
+        onPress={() => navigation.navigate('CreateTask', { projectId })}
+      />
     </ApScreen>
   );
 };

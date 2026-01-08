@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { View, FlatList, TouchableOpacity } from 'react-native';
+import {
+  View,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import {
   ApTheme,
   ApText,
@@ -11,66 +16,12 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme } from '../../hooks/useAppTheme';
+import { useAppTheme, useProjects, useTasks } from '../../hooks';
+import { Project, Task } from '../../types';
 
 interface ProjectsListScreenProps {
   navigation: any;
 }
-
-const mockProjects = [
-  {
-    id: '1',
-    title: 'Website Redesign',
-    description: 'Complete overhaul of company website',
-    progress: 65,
-    taskCount: 24,
-    completedTasks: 16,
-    members: [
-      { id: '1', name: 'Muhammed Bello' },
-      { id: '2', name: 'Jane Smith' },
-      { id: '3', name: 'Bob Wilson' },
-    ],
-    status: 'active',
-  },
-  {
-    id: '2',
-    title: 'Mobile App Development',
-    description: 'Native iOS and Android app',
-    progress: 40,
-    taskCount: 32,
-    completedTasks: 13,
-    members: [
-      { id: '1', name: 'Muhammed Bello' },
-      { id: '4', name: 'Alice Brown' },
-    ],
-    status: 'active',
-  },
-  {
-    id: '3',
-    title: 'Backend API',
-    description: 'RESTful API with NestJS',
-    progress: 85,
-    taskCount: 18,
-    completedTasks: 15,
-    members: [
-      { id: '2', name: 'Jane Smith' },
-      { id: '5', name: 'Charlie Davis' },
-      { id: '6', name: 'Eva Green' },
-      { id: '7', name: 'Frank White' },
-    ],
-    status: 'active',
-  },
-  {
-    id: '4',
-    title: 'Documentation',
-    description: 'User guides and API docs',
-    progress: 100,
-    taskCount: 8,
-    completedTasks: 8,
-    members: [{ id: '1', name: 'Muhammed Bello' }],
-    status: 'completed',
-  },
-];
 
 type FilterType = 'all' | 'active' | 'completed';
 
@@ -81,98 +32,114 @@ export const ProjectsListScreen: React.FC<ProjectsListScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
+  const { data: projects = [], isLoading: projectsLoading } = useProjects();
+  const { data: allTasks = [] } = useTasks();
+
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: 'All' },
     { key: 'active', label: 'Active' },
     { key: 'completed', label: 'Completed' },
   ];
 
-  const filteredProjects = mockProjects.filter(project => {
-    const matchesSearch = project.title
+  const getProjectStats = (projectId: string) => {
+    const projectTasks = allTasks.filter(
+      (t: Task) => t.projectId === projectId,
+    );
+    const completedTasks = projectTasks.filter(
+      (t: Task) => t.status === 'DONE',
+    );
+    const total = projectTasks.length;
+    const completed = completedTasks.length;
+    const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return { total, completed, progress };
+  };
+
+  const filteredProjects = projects.filter((project: Project) => {
+    const matchesSearch = project.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
+
+    const stats = getProjectStats(project.id);
+    const isCompleted = stats.progress === 100 && stats.total > 0;
+
     const matchesFilter =
       activeFilter === 'all' ||
-      (activeFilter === 'active' && project.status === 'active') ||
-      (activeFilter === 'completed' && project.status === 'completed');
+      (activeFilter === 'active' && !isCompleted) ||
+      (activeFilter === 'completed' && isCompleted);
+
     return matchesSearch && matchesFilter;
   });
 
-  const renderProjectCard = ({ item }: { item: (typeof mockProjects)[0] }) => (
-    <ApCard
-      padding="md"
-      onPress={() =>
-        navigation.navigate('ProjectDetail', { projectId: item.id })
-      }
-      className="mb-4"
-    >
-      <View className="flex-row justify-between">
-        <View className="flex-1">
-          <ApText size="lg" weight="semibold" numberOfLines={1}>
-            {item.title}
-          </ApText>
-          <ApText
-            size="sm"
-            color={colors.text.secondary}
-            numberOfLines={1}
-            className="mt-0.5"
-          >
-            {item.description}
-          </ApText>
-        </View>
-        <ApProgressBar
-          progress={item.progress}
-          variant="circular"
-          size="md"
-          showLabel
-          color={
-            item.progress === 100
-              ? ApTheme.Color.success
-              : ApTheme.Color.primary
-          }
-        />
-      </View>
+  const renderProjectCard = ({ item }: { item: Project }) => {
+    const stats = getProjectStats(item.id);
 
-      <View className="flex-row justify-between items-center mt-4">
-        <View className="flex-row items-center">
-          <View className="flex-row">
-            {item.members.slice(0, 3).map((member, index) => (
-              <View
-                key={member.id}
-                style={{ marginLeft: index > 0 ? -10 : 0, zIndex: 3 - index }}
-              >
-                <ApAvatar name={member.name} size="xs" />
-              </View>
-            ))}
-            {item.members.length > 3 && (
-              <View
-                className="w-6 h-6 rounded-full items-center justify-center"
-                style={{
-                  marginLeft: -10,
-                  backgroundColor: ApTheme.Color.secondary,
-                }}
-              >
-                <ApText size="xs" color={ApTheme.Color.white}>
-                  +{item.members.length - 3}
-                </ApText>
-              </View>
-            )}
+    return (
+      <ApCard
+        padding="md"
+        onPress={() =>
+          navigation.navigate('ProjectDetail', { projectId: item.id })
+        }
+        className="mb-4"
+      >
+        <View className="flex-row justify-between">
+          <View className="flex-1">
+            <ApText size="lg" weight="semibold" numberOfLines={1}>
+              {item.name}
+            </ApText>
+            <ApText
+              size="sm"
+              color={colors.text.secondary}
+              numberOfLines={1}
+              className="mt-0.5"
+            >
+              {item.description || 'No description'}
+            </ApText>
+          </View>
+          <ApProgressBar
+            progress={stats.progress}
+            variant="circular"
+            size="md"
+            showLabel
+            color={
+              stats.progress === 100
+                ? ApTheme.Color.success
+                : ApTheme.Color.primary
+            }
+          />
+        </View>
+
+        <View className="flex-row justify-between items-center mt-4">
+          <View className="flex-row items-center">
+            <ApAvatar name={item.name} size="xs" />
+          </View>
+
+          <View className="flex-row items-center">
+            <Icon
+              name="check-square"
+              size={14}
+              color={ApTheme.Color.text.muted}
+            />
+            <ApText size="sm" color={ApTheme.Color.text.muted} className="ml-1">
+              {stats.completed}/{stats.total} tasks
+            </ApText>
           </View>
         </View>
+      </ApCard>
+    );
+  };
 
-        <View className="flex-row items-center">
-          <Icon
-            name="check-square"
-            size={14}
-            color={ApTheme.Color.text.muted}
-          />
-          <ApText size="sm" color={ApTheme.Color.text.muted} className="ml-1">
-            {item.completedTasks}/{item.taskCount} tasks
+  if (projectsLoading) {
+    return (
+      <ApScreen>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={ApTheme.Color.primary} />
+          <ApText size="md" color={colors.text.secondary} className="mt-4">
+            Loading projects...
           </ApText>
         </View>
-      </View>
-    </ApCard>
-  );
+      </ApScreen>
+    );
+  }
 
   return (
     <ApScreen>

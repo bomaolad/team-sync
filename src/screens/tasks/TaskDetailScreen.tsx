@@ -5,6 +5,8 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {
   ApTheme,
@@ -18,114 +20,165 @@ import {
   ApModal,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme } from '../../hooks/useAppTheme';
+import {
+  useAppTheme,
+  useTask,
+  useUpdateTaskStatus,
+  useComments,
+  useCreateComment,
+  useSubtasks,
+  useUpdateSubtask,
+  useCreateSubtask,
+} from '../../hooks';
+import {
+  TaskStatus as TaskStatusType,
+  TaskPriority,
+  Comment,
+  Subtask,
+} from '../../types';
 
 interface TaskDetailScreenProps {
   navigation: any;
   route: any;
 }
 
-type TaskStatus = 'todo' | 'inProgress' | 'underReview' | 'recheck' | 'done';
-
-const statusConfig: Record<TaskStatus, { label: string; color: string }> = {
-  todo: { label: 'To Do', color: ApTheme.Color.status.todo },
-  inProgress: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
-  underReview: {
+const statusConfig: Record<TaskStatusType, { label: string; color: string }> = {
+  TODO: { label: 'To Do', color: ApTheme.Color.status.todo },
+  IN_PROGRESS: { label: 'In Progress', color: ApTheme.Color.status.inProgress },
+  UNDER_REVIEW: {
     label: 'Under Review',
     color: ApTheme.Color.status.underReview,
   },
-  recheck: { label: 'Recheck', color: ApTheme.Color.status.recheck },
-  done: { label: 'Done', color: ApTheme.Color.status.done },
+  DONE: { label: 'Done', color: ApTheme.Color.status.done },
 };
 
-const mockTask = {
-  id: '1',
-  title: 'Design Home Page Banner',
-  description:
-    "Create a modern, eye-catching banner for the homepage. Should include the company logo, tagline, and a CTA button. Use the brand colors and ensure it's responsive.",
-  status: 'inProgress' as TaskStatus,
-  priority: 'high' as const,
-  assignee: { id: '1', name: 'Muhammed Bello' },
-  startDate: 'Dec 20, 2024',
-  dueDate: 'Dec 25, 2024',
-  project: 'Website Redesign',
-  subtasks: [
-    { id: '1', title: 'Research design inspiration', completed: true },
-    { id: '2', title: 'Create wireframe', completed: true },
-    { id: '3', title: 'Design in Figma', completed: false },
-    { id: '4', title: 'Export assets', completed: false },
-  ],
-  attachments: [
-    { id: '1', name: 'wireframe.png', type: 'image' },
-    { id: '2', name: 'brief.pdf', type: 'file' },
-  ],
-  comments: [
-    {
-      id: '1',
-      user: { id: '2', name: 'Jane Smith' },
-      text: 'Looking great so far! Can we make the CTA button more prominent?',
-      timestamp: '2 hours ago',
-      isSystem: false,
-    },
-    {
-      id: '2',
-      user: { id: '1', name: 'Muhammed Bello' },
-      text: "Sure, I'll increase the size and add a subtle animation.",
-      timestamp: '1 hour ago',
-      isSystem: false,
-    },
-    {
-      id: '3',
-      user: { id: '1', name: 'System' },
-      text: 'Muhammed changed status to In Progress',
-      timestamp: '3 hours ago',
-      isSystem: true,
-    },
-  ],
+const statusOrder: TaskStatusType[] = [
+  'TODO',
+  'IN_PROGRESS',
+  'UNDER_REVIEW',
+  'DONE',
+];
+
+const mapPriority = (priority: TaskPriority): 'low' | 'medium' | 'high' => {
+  const priorityMap: Record<TaskPriority, 'low' | 'medium' | 'high'> = {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+  };
+  return priorityMap[priority] || 'medium';
+};
+
+const formatDate = (date: string | null): string => {
+  if (!date) return 'Not set';
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+const formatTimestamp = (date: string): string => {
+  const now = new Date();
+  const commentDate = new Date(date);
+  const diffMs = now.getTime() - commentDate.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) return 'Just now';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return formatDate(date);
 };
 
 export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   navigation,
+  route,
 }) => {
   const { colors } = useAppTheme();
-  const [task, setTask] = useState(mockTask);
+  const taskId = route.params?.taskId;
+
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showRecheckModal, setShowRecheckModal] = useState(false);
-  const [recheckReason, setRecheckReason] = useState('');
   const [newComment, setNewComment] = useState('');
-  const [pendingStatus, setPendingStatus] = useState<TaskStatus | null>(null);
+  const [newSubtask, setNewSubtask] = useState('');
 
-  const handleStatusChange = (newStatus: TaskStatus) => {
-    if (newStatus === 'recheck') {
-      setPendingStatus(newStatus);
-      setShowStatusModal(false);
-      setShowRecheckModal(true);
-    } else {
-      setTask(prev => ({ ...prev, status: newStatus }));
-      setShowStatusModal(false);
-    }
-  };
+  const { data: task, isLoading: taskLoading } = useTask(taskId);
+  const { data: comments = [], isLoading: commentsLoading } =
+    useComments(taskId);
+  const { data: subtasks = [], isLoading: subtasksLoading } =
+    useSubtasks(taskId);
 
-  const handleRecheckSubmit = () => {
-    if (!recheckReason.trim()) return;
-    setTask(prev => ({ ...prev, status: 'recheck' }));
-    setShowRecheckModal(false);
-    setRecheckReason('');
+  const updateStatusMutation = useUpdateTaskStatus();
+  const createCommentMutation = useCreateComment();
+  const updateSubtaskMutation = useUpdateSubtask();
+  const createSubtaskMutation = useCreateSubtask();
+
+  const handleStatusChange = (newStatus: TaskStatusType) => {
+    updateStatusMutation.mutate(
+      { id: taskId, data: { status: newStatus } },
+      {
+        onSuccess: () => {
+          setShowStatusModal(false);
+        },
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message || 'Failed to update status';
+          Alert.alert('Error', message);
+        },
+      },
+    );
   };
 
   const handleAddComment = () => {
     if (!newComment.trim()) return;
-    setNewComment('');
+    createCommentMutation.mutate(
+      { taskId, data: { content: newComment } },
+      {
+        onSuccess: () => {
+          setNewComment('');
+        },
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message || 'Failed to add comment';
+          Alert.alert('Error', message);
+        },
+      },
+    );
   };
 
-  const toggleSubtask = (subtaskId: string) => {
-    setTask(prev => ({
-      ...prev,
-      subtasks: prev.subtasks.map(st =>
-        st.id === subtaskId ? { ...st, completed: !st.completed } : st,
-      ),
-    }));
+  const toggleSubtask = (subtask: Subtask) => {
+    updateSubtaskMutation.mutate({
+      subtaskId: subtask.id,
+      taskId,
+      data: { completed: !subtask.completed },
+    });
   };
+
+  const handleAddSubtask = () => {
+    if (!newSubtask.trim()) return;
+    createSubtaskMutation.mutate(
+      { taskId, data: { title: newSubtask } },
+      {
+        onSuccess: () => {
+          setNewSubtask('');
+        },
+      },
+    );
+  };
+
+  const isLoading = taskLoading || commentsLoading || subtasksLoading;
+
+  if (isLoading || !task) {
+    return (
+      <ApScreen>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={ApTheme.Color.primary} />
+        </View>
+      </ApScreen>
+    );
+  }
+
+  const currentStatus = task.status as TaskStatusType;
+  const completedSubtasks = subtasks.filter((s: Subtask) => s.completed).length;
 
   return (
     <ApScreen>
@@ -141,10 +194,12 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             <Icon name="arrow-left" size={24} color={colors.text.primary} />
           </TouchableOpacity>
           <ApText size="sm" color={colors.text.secondary} className="flex-1">
-            {task.project}
+            {task.project?.name || 'Task'}
           </ApText>
-          <TouchableOpacity>
-            <Icon name="more-vertical" size={24} color={colors.text.primary} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateTask', { taskId })}
+          >
+            <Icon name="edit-2" size={20} color={colors.text.primary} />
           </TouchableOpacity>
         </View>
 
@@ -156,10 +211,13 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
           <TouchableOpacity
             onPress={() => setShowStatusModal(true)}
             className="flex-row items-center self-start px-4 py-2 rounded-lg mb-6"
-            style={{ backgroundColor: statusConfig[task.status].color }}
+            style={{
+              backgroundColor:
+                statusConfig[currentStatus]?.color || ApTheme.Color.primary,
+            }}
           >
             <ApText size="sm" weight="semibold" color={ApTheme.Color.white}>
-              {statusConfig[task.status].label}
+              {statusConfig[currentStatus]?.label || currentStatus}
             </ApText>
             <Icon
               name="chevron-down"
@@ -176,9 +234,12 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                   Assignee
                 </ApText>
                 <View className="flex-row items-center mt-1">
-                  <ApAvatar name={task.assignee.name} size="xs" />
+                  <ApAvatar
+                    name={task.assignee?.name || 'Unassigned'}
+                    size="xs"
+                  />
                   <ApText size="sm" weight="medium" className="ml-2">
-                    {task.assignee.name}
+                    {task.assignee?.name || 'Unassigned'}
                   </ApText>
                 </View>
               </View>
@@ -187,8 +248,8 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                   Priority
                 </ApText>
                 <ApBadge
-                  priority={task.priority}
-                  label={task.priority}
+                  priority={mapPriority(task.priority)}
+                  label={task.priority.toLowerCase()}
                   className="mt-1"
                 />
               </View>
@@ -200,7 +261,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                   Start Date
                 </ApText>
                 <ApText size="sm" weight="medium" className="mt-1">
-                  {task.startDate}
+                  {formatDate(task.startDate)}
                 </ApText>
               </View>
               <View className="flex-1">
@@ -208,30 +269,31 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                   Due Date
                 </ApText>
                 <ApText size="sm" weight="medium" className="mt-1">
-                  {task.dueDate}
+                  {formatDate(task.dueDate)}
                 </ApText>
               </View>
             </View>
           </View>
 
-          <View className="mb-6">
-            <ApText size="md" weight="semibold" className="mb-2">
-              Description
-            </ApText>
-            <ApText size="sm" color={colors.text.secondary}>
-              {task.description}
-            </ApText>
-          </View>
+          {task.description && (
+            <View className="mb-6">
+              <ApText size="md" weight="semibold" className="mb-2">
+                Description
+              </ApText>
+              <ApText size="sm" color={colors.text.secondary}>
+                {task.description}
+              </ApText>
+            </View>
+          )}
 
           <View className="mb-6">
             <ApText size="md" weight="semibold" className="mb-2">
-              Subtasks ({task.subtasks.filter(s => s.completed).length}/
-              {task.subtasks.length})
+              Subtasks ({completedSubtasks}/{subtasks.length})
             </ApText>
-            {task.subtasks.map(subtask => (
+            {subtasks.map((subtask: Subtask) => (
               <TouchableOpacity
                 key={subtask.id}
-                onPress={() => toggleSubtask(subtask.id)}
+                onPress={() => toggleSubtask(subtask)}
                 className="flex-row items-center py-2"
               >
                 <View
@@ -265,67 +327,64 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                 </ApText>
               </TouchableOpacity>
             ))}
-          </View>
-
-          <View className="mb-6">
-            <ApText size="md" weight="semibold" className="mb-2">
-              Attachments
-            </ApText>
-            <View className="flex-row flex-wrap">
-              {task.attachments.map(attachment => (
-                <ApCard key={attachment.id} padding="sm" className="mr-2 mb-2">
-                  <View className="flex-row items-center">
-                    <Icon
-                      name={attachment.type === 'image' ? 'image' : 'file'}
-                      size={16}
-                      color={ApTheme.Color.primary}
-                    />
-                    <ApText size="sm" className="ml-2">
-                      {attachment.name}
-                    </ApText>
-                  </View>
-                </ApCard>
-              ))}
+            <View className="flex-row items-center mt-2">
+              <TextInput
+                placeholder="Add subtask..."
+                value={newSubtask}
+                onChangeText={setNewSubtask}
+                className="flex-1 rounded-lg px-4 py-2 text-sm"
+                style={{
+                  backgroundColor: ApTheme.Color.background.light,
+                  color: colors.text.primary,
+                }}
+                onSubmitEditing={handleAddSubtask}
+              />
+              <TouchableOpacity onPress={handleAddSubtask} className="ml-2">
+                <Icon
+                  name="plus-circle"
+                  size={24}
+                  color={ApTheme.Color.primary}
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
           <View className="mb-24">
             <ApText size="md" weight="semibold" className="mb-2">
-              Activity
+              Comments ({comments.length})
             </ApText>
-            {task.comments.map(comment => (
-              <View key={comment.id} className="flex-row mb-4">
-                <ApAvatar name={comment.user.name} size="sm" />
-                <View className="flex-1 ml-2">
-                  <View className="flex-row items-center">
-                    <ApText size="sm" weight="semibold">
-                      {comment.user.name}
-                    </ApText>
+            {comments.length === 0 ? (
+              <ApText size="sm" color={colors.text.muted}>
+                No comments yet
+              </ApText>
+            ) : (
+              comments.map((comment: Comment) => (
+                <View key={comment.id} className="flex-row mb-4">
+                  <ApAvatar name={comment.user?.name || 'User'} size="sm" />
+                  <View className="flex-1 ml-2">
+                    <View className="flex-row items-center">
+                      <ApText size="sm" weight="semibold">
+                        {comment.user?.name || 'User'}
+                      </ApText>
+                      <ApText
+                        size="xs"
+                        color={ApTheme.Color.text.muted}
+                        className="ml-2"
+                      >
+                        {formatTimestamp(comment.createdAt)}
+                      </ApText>
+                    </View>
                     <ApText
-                      size="xs"
-                      color={ApTheme.Color.text.muted}
-                      className="ml-2"
+                      size="sm"
+                      color={colors.text.secondary}
+                      style={{ marginTop: 2 }}
                     >
-                      {comment.timestamp}
+                      {comment.content}
                     </ApText>
                   </View>
-                  <ApText
-                    size="sm"
-                    color={
-                      comment.isSystem
-                        ? ApTheme.Color.text.muted
-                        : colors.text.secondary
-                    }
-                    style={{
-                      marginTop: 2,
-                      fontStyle: comment.isSystem ? 'italic' : 'normal',
-                    }}
-                  >
-                    {comment.text}
-                  </ApText>
                 </View>
-              </View>
-            ))}
+              ))
+            )}
           </View>
         </ApScrollView>
 
@@ -347,8 +406,15 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
               color: colors.text.primary,
             }}
           />
-          <TouchableOpacity onPress={handleAddComment}>
-            <Icon name="send" size={24} color={ApTheme.Color.primary} />
+          <TouchableOpacity
+            onPress={handleAddComment}
+            disabled={createCommentMutation.isPending}
+          >
+            {createCommentMutation.isPending ? (
+              <ActivityIndicator size="small" color={ApTheme.Color.primary} />
+            ) : (
+              <Icon name="send" size={24} color={ApTheme.Color.primary} />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -360,11 +426,12 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
         <ApText size="lg" weight="bold" className="mb-4">
           Change Status
         </ApText>
-        {(Object.keys(statusConfig) as TaskStatus[]).map(status => (
+        {statusOrder.map(status => (
           <TouchableOpacity
             key={status}
             onPress={() => handleStatusChange(status)}
             className="flex-row items-center py-2"
+            disabled={updateStatusMutation.isPending}
           >
             <View
               className="w-4 h-4 rounded-full mr-2"
@@ -372,11 +439,11 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             />
             <ApText
               size="md"
-              weight={task.status === status ? 'semibold' : 'normal'}
+              weight={currentStatus === status ? 'semibold' : 'normal'}
             >
               {statusConfig[status].label}
             </ApText>
-            {task.status === status && (
+            {currentStatus === status && (
               <Icon
                 name="check"
                 size={18}
@@ -386,41 +453,6 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             )}
           </TouchableOpacity>
         ))}
-      </ApModal>
-
-      <ApModal
-        visible={showRecheckModal}
-        onClose={() => {
-          setShowRecheckModal(false);
-          setRecheckReason('');
-        }}
-      >
-        <ApText size="lg" weight="bold" className="mb-2">
-          Reason for Rejection
-        </ApText>
-        <ApText size="sm" color={colors.text.secondary} className="mb-4">
-          Please provide a reason why this task needs to be rechecked.
-        </ApText>
-        <TextInput
-          placeholder="Enter rejection reason..."
-          value={recheckReason}
-          onChangeText={setRecheckReason}
-          multiline
-          numberOfLines={4}
-          className="rounded-lg p-4 text-sm mb-4"
-          style={{
-            backgroundColor: ApTheme.Color.background.light,
-            textAlignVertical: 'top',
-            minHeight: 100,
-            color: colors.text.primary,
-          }}
-        />
-        <ApButton
-          title="Submit"
-          onPress={handleRecheckSubmit}
-          fullWidth
-          disabled={!recheckReason.trim()}
-        />
       </ApModal>
     </ApScreen>
   );

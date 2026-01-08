@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, ViewProps, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { useAppTheme } from '../hooks/useAppTheme';
 
-interface ApCardProps extends ViewProps {
+interface ApCardProps extends TouchableOpacityProps {
   onPress?: () => void;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   elevated?: boolean;

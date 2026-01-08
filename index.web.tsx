@@ -1,3 +1,4 @@
+import 'react-native-css-interop/metro-runtime';
 import { AppRegistry } from 'react-native';
 import App from './App.web';
 

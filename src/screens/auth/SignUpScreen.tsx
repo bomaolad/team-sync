@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import {
   ApTheme,
@@ -14,7 +15,7 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme } from '../../hooks/useAppTheme';
+import { useAppTheme, useRegister } from '../../hooks';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -30,9 +31,10 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     password: '',
     confirmPassword: '',
   });
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [agreeTerms, setAgreeTerms] = useState(false);
+
+  const registerMutation = useRegister();
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -60,10 +62,6 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       newErrors.email = 'Please enter a valid email';
     }
 
-    if (!formData.jobTitle.trim()) {
-      newErrors.jobTitle = 'Job title is required';
-    }
-
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -85,11 +83,25 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const handleSignUp = () => {
     if (!validateForm()) return;
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.navigate('VerifyEmail', { email: formData.email });
-    }, 1500);
+    registerMutation.mutate(
+      {
+        name: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      },
+      {
+        onSuccess: () => {
+          navigation.replace('Main');
+        },
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message ||
+            'Registration failed. Please try again.';
+          Alert.alert('Registration Failed', message);
+        },
+      },
+    );
   };
 
   return (
@@ -150,7 +162,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
             />
 
             <ApInput
-              label="Job Title"
+              label="Job Title (Optional)"
               placeholder="e.g. Frontend Developer"
               value={formData.jobTitle}
               onChangeText={text => updateField('jobTitle', text)}
@@ -233,7 +245,7 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
             <ApButton
               title="Create Account"
               onPress={handleSignUp}
-              loading={loading}
+              loading={registerMutation.isPending}
               fullWidth
             />
 

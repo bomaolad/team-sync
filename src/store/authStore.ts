@@ -1,14 +1,5 @@
 import { create } from 'zustand';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  username: string;
-  jobTitle: string;
-  avatar: string | null;
-  role: 'admin' | 'member' | 'viewer';
-}
+import { User } from '../types';
 
 interface AuthState {
   user: User | null;

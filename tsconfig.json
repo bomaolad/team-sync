@@ -2,7 +2,8 @@
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
     "lib": ["dom", "esnext"],
-    "types": ["jest"]
+    "types": ["jest"],
+    "jsx": "react-jsx"
   },
   "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"],
   "exclude": ["**/node_modules", "**/Pods"]

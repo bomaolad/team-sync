@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import {
   ApTheme,
@@ -14,7 +15,7 @@ import {
   ApInput,
 } from '../../components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme } from '../../hooks/useAppTheme';
+import { useAppTheme, useLogin } from '../../hooks';
 
 interface LoginScreenProps {
   navigation: any;
@@ -24,10 +25,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { colors } = useAppTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
     {},
   );
+
+  const loginMutation = useLogin();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -51,11 +53,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const handleLogin = () => {
     if (!validateForm()) return;
 
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.replace('Main');
-    }, 1500);
+    loginMutation.mutate(
+      { email, password },
+      {
+        onSuccess: () => {
+          navigation.replace('Main');
+        },
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message || 'Login failed. Please try again.';
+          Alert.alert('Login Failed', message);
+        },
+      },
+    );
   };
 
   const handleGoogleLogin = () => {};
@@ -120,7 +130,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <ApButton
               title="Sign In"
               onPress={handleLogin}
-              loading={loading}
+              loading={loginMutation.isPending}
               fullWidth
               className="mb-4"
             />
