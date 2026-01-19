@@ -4,11 +4,14 @@
     "name": "TeamSyncApp",
     "slug": "team-sync-app",
     "version": "1.0.0",
+    "scheme": "teamsync",
     "platforms": ["ios", "android", "web"],
     "userInterfaceStyle": "automatic",
+    "jsEngine": "hermes",
     "web": {
       "bundler": "metro",
       "output": "single"
-    }
+    },
+    "plugins": ["expo-router"]
   }
 }

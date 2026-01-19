@@ -1,4 +1,3 @@
-import 'react-native-css-interop/metro';
 import { AppRegistry } from 'react-native';
 import App from './App.web';
 
