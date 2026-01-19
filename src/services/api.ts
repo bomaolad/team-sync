@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+
 import { useAuthStore } from '../store/authStore';
 
 const getBaseUrl = () => {
-  const envUrl = Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (Platform.OS === 'android') {
     return envUrl?.replace('localhost', '10.0.2.2') || '';
   }
