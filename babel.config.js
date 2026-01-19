@@ -1,4 +1,3 @@
-// babel.config.js
 module.exports = function (api) {
   api.cache(true);
   return {
@@ -6,6 +5,9 @@ module.exports = function (api) {
       ['babel-preset-expo', { jsxImportSource: 'nativewind' }],
       'nativewind/babel',
     ],
-    plugins: ['react-native-reanimated/plugin', 'transform-import-meta'],
+    plugins: [
+      '@babel/plugin-transform-runtime',
+      'react-native-reanimated/plugin',
+    ],
   };
 };

@@ -1,5 +1,4 @@
 {
-  "name": "TeamSyncApp",
   "expo": {
     "name": "TeamSyncApp",
     "slug": "team-sync-app",
@@ -10,8 +9,16 @@
     "jsEngine": "hermes",
     "web": {
       "bundler": "metro",
-      "output": "single"
+      "output": "static",
+      "build": {
+        "babel": {
+          "include": ["@expo/vector-icons"]
+        }
+      }
     },
-    "plugins": ["expo-router"]
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "plugins": ["expo-font", "expo-router"]
   }
 }

@@ -1,4 +1,6 @@
 import '../global.css';
+import 'react-native-reanimated';
+import 'regenerator-runtime/runtime';
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';

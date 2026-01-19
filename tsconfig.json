@@ -1,9 +1,10 @@
 {
-  "extends": "@react-native/typescript-config",
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "lib": ["dom", "esnext"],
-    "types": ["jest"],
+    "strict": false,
     "jsx": "react-jsx",
+    "jsxImportSource": "nativewind",
+    "lib": ["ES2019", "DOM"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
