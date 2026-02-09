@@ -11,12 +11,11 @@ import {
   ApModal,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme, useLogout } from '@/src/hooks';
-import { useAuthStore } from '@/src/store/authStore';
+import { useAppTheme, useLogout, useProfile } from '@/src/hooks';
 
 export const SettingsScreen = () => {
   const { isDark, toggleTheme, colors } = useAppTheme();
-  const { user } = useAuthStore();
+  const { data: userProfile } = useProfile();
   const logout = useLogout();
   const [notifications, setNotifications] = useState({
     newTasks: true,
@@ -84,19 +83,19 @@ export const SettingsScreen = () => {
         <ApCard padding="md" className="mb-6">
           <View className="flex-row items-center">
             <ApAvatar
-              source={user?.avatar}
-              name={user?.name || 'User'}
+              source={userProfile?.avatar}
+              name={userProfile?.name || 'User'}
               size="lg"
             />
             <View className="flex-1 ml-4">
               <ApText size="lg" weight="semibold">
-                {user?.name || 'User'}
+                {userProfile?.name || 'User'}
               </ApText>
               <ApText size="sm" color={colors.text.secondary}>
-                {user?.jobTitle || 'No title'}
+                {userProfile?.jobTitle || 'No title'}
               </ApText>
               <ApText size="xs" color={colors.text.muted}>
-                {user?.email}
+                {userProfile?.email}
               </ApText>
             </View>
             <TouchableOpacity

@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import {
   ApTheme,
@@ -17,12 +12,11 @@ import {
   ApCard,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme, useUpdateProfile } from '@/src/hooks';
-import { useAuthStore } from '@/src/store/authStore';
+import { useAppTheme, useUpdateProfile, useProfile } from '@/src/hooks';
 
 export const EditProfileScreen = () => {
   const { colors } = useAppTheme();
-  const { user } = useAuthStore();
+  const { data: userProfile, isLoading: profileLoading } = useProfile();
   const updateProfileMutation = useUpdateProfile();
   const { showToast } = useToast();
 
@@ -33,20 +27,22 @@ export const EditProfileScreen = () => {
   const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      if (user.firstName && user.lastName) {
-        setFirstName(user.firstName);
-        setLastName(user.lastName);
+    if (userProfile) {
+      if (userProfile.firstName && userProfile.lastName) {
+        setFirstName(userProfile.firstName);
+        setLastName(userProfile.lastName);
       } else {
-        const [first, ...lastParts] = (user.name || '').trim().split(' ');
+        const [first, ...lastParts] = (userProfile.name || '')
+          .trim()
+          .split(' ');
         setFirstName(first || '');
         setLastName(lastParts.join(' ') || '');
       }
-      setUsername(user.username || '');
-      setJobTitle(user.jobTitle || '');
-      setAvatar(user.avatar || null);
+      setUsername(userProfile.username || '');
+      setJobTitle(userProfile.jobTitle || '');
+      setAvatar(userProfile.avatar || null);
     }
-  }, [user]);
+  }, [userProfile]);
 
   const handleSubmit = () => {
     if (!firstName.trim()) {
@@ -160,7 +156,7 @@ export const EditProfileScreen = () => {
               Email
             </ApText>
             <View className="py-3 px-4 rounded-lg bg-gray-100 border border-gray-200">
-              <ApText color={colors.text.muted}>{user?.email}</ApText>
+              <ApText color={colors.text.muted}>{userProfile?.email}</ApText>
             </View>
             <ApText size="xs" color={colors.text.muted} className="mt-1 ml-1">
               Email cannot be changed
