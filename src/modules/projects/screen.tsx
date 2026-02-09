@@ -21,6 +21,7 @@ import {
   useToast,
   ApModal,
   ApScrollView,
+  ApSelect,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
 import {
@@ -961,53 +962,17 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
           )}
 
           {!isEditing && (
-            <View className="mb-6">
-              <ApText
-                size="sm"
-                weight="medium"
-                color={colors.text.secondary}
-                className="mb-2"
-              >
-                Select Team
-              </ApText>
-              {teams.length === 0 ? (
-                <ApText size="sm" color={colors.text.muted}>
-                  No teams available. Create a team first.
-                </ApText>
-              ) : (
-                <View className="flex-row flex-wrap -mx-1">
-                  {teams.map((team: Team) => (
-                    <TouchableOpacity
-                      key={team.id}
-                      onPress={() => setSelectedTeamId(team.id)}
-                      className="py-2 px-4 rounded-lg m-1"
-                      style={{
-                        backgroundColor:
-                          selectedTeamId === team.id
-                            ? ApTheme.Color.primary
-                            : colors.surface,
-                        borderWidth: 1,
-                        borderColor:
-                          selectedTeamId === team.id
-                            ? ApTheme.Color.primary
-                            : colors.border,
-                      }}
-                    >
-                      <ApText
-                        weight="medium"
-                        color={
-                          selectedTeamId === team.id
-                            ? ApTheme.Color.white
-                            : colors.text.secondary
-                        }
-                      >
-                        {team.name}
-                      </ApText>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
+            <ApSelect
+              label="Select Team"
+              placeholder="Select a team"
+              searchPlaceholder="Search teams..."
+              searchable
+              options={teams}
+              value={selectedTeamId}
+              onChange={setSelectedTeamId}
+              getLabel={(item: Team) => item.name}
+              getValue={(item: Team) => item.id}
+            />
           )}
 
           <ApButton
