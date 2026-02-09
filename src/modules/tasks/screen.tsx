@@ -6,8 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
-  ScrollView,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
@@ -21,6 +19,10 @@ import {
   ApButton,
   ApModal,
   ApInput,
+  ApDatePicker,
+  ApConfirm,
+  ApSelect,
+  useToast,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
 import {
@@ -32,9 +34,11 @@ import {
   useSubtasks,
   useUpdateSubtask,
   useCreateSubtask,
+  useDeleteSubtask,
   useProjects,
   useCreateTask,
   useUpdateTask,
+  useTeamMembers,
 } from '@/src/hooks';
 import {
   TaskStatus as TaskStatusType,
@@ -42,6 +46,7 @@ import {
   Comment,
   Subtask,
   Project,
+  TeamMember,
 } from '@/src/types';
 import {
   statusConfig,
@@ -63,6 +68,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [newSubtask, setNewSubtask] = useState('');
+  const { showToast } = useToast();
 
   const { data: task, isLoading: taskLoading } = useTask(taskId || '');
   const { data: comments = [], isLoading: commentsLoading } = useComments(
@@ -76,6 +82,11 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   const createCommentMutation = useCreateComment();
   const updateSubtaskMutation = useUpdateSubtask();
   const createSubtaskMutation = useCreateSubtask();
+  const deleteSubtaskMutation = useDeleteSubtask();
+
+  const [updatingSubtaskId, setUpdatingSubtaskId] = useState<string | null>(
+    null,
+  );
 
   const handleStatusChange = (newStatus: TaskStatusType) => {
     if (!taskId) return;
@@ -88,7 +99,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
         onError: (error: any) => {
           const message =
             error.response?.data?.message || 'Failed to update status';
-          Alert.alert('Error', message);
+          showToast(message, 'error');
         },
       },
     );
@@ -105,7 +116,7 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
         onError: (error: any) => {
           const message =
             error.response?.data?.message || 'Failed to add comment';
-          Alert.alert('Error', message);
+          showToast(message, 'error');
         },
       },
     );
@@ -113,11 +124,33 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
 
   const toggleSubtask = (subtask: Subtask) => {
     if (!taskId) return;
-    updateSubtaskMutation.mutate({
-      subtaskId: subtask.id,
-      taskId,
-      data: { completed: !subtask.completed },
-    });
+    setUpdatingSubtaskId(subtask.id);
+    updateSubtaskMutation.mutate(
+      {
+        subtaskId: subtask.id,
+        taskId,
+        data: { isCompleted: !subtask.isCompleted },
+      },
+      {
+        onSettled: () => setUpdatingSubtaskId(null),
+      },
+    );
+  };
+
+  const handleDeleteSubtask = (subtaskId: string) => {
+    if (!taskId) return;
+    setUpdatingSubtaskId(subtaskId);
+    deleteSubtaskMutation.mutate(
+      { subtaskId, taskId },
+      {
+        onSettled: () => setUpdatingSubtaskId(null),
+        onError: (error: any) => {
+          const message =
+            error.response?.data?.message || 'Failed to delete subtask';
+          showToast(message, 'error');
+        },
+      },
+    );
   };
 
   const handleAddSubtask = () => {
@@ -145,7 +178,9 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
   }
 
   const currentStatus = task.status as TaskStatusType;
-  const completedSubtasks = subtasks.filter((s: Subtask) => s.completed).length;
+  const completedSubtasks = subtasks.filter(
+    (s: Subtask) => s.isCompleted,
+  ).length;
 
   return (
     <ApScreen>
@@ -195,16 +230,26 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
             <View className="flex-row mb-4">
               <View className="flex-1">
                 <ApText size="xs" color={ApTheme.Color.text.muted}>
-                  Assignee
+                  Assignees
                 </ApText>
-                <View className="flex-row items-center mt-1">
-                  <ApAvatar
-                    name={task.assignee?.name || 'Unassigned'}
-                    size="xs"
-                  />
-                  <ApText size="sm" weight="medium" className="ml-2">
-                    {task.assignee?.name || 'Unassigned'}
-                  </ApText>
+                <View className="flex-row flex-wrap mt-1">
+                  {task.assignees && task.assignees.length > 0 ? (
+                    task.assignees.map(assignee => (
+                      <View
+                        key={assignee.id}
+                        className="flex-row items-center mr-2 mb-1"
+                      >
+                        <ApAvatar name={assignee.name} size="xs" />
+                        <ApText size="sm" weight="medium" className="ml-1">
+                          {assignee.name}
+                        </ApText>
+                      </View>
+                    ))
+                  ) : (
+                    <ApText size="sm" color={colors.text.muted}>
+                      Unassigned
+                    </ApText>
+                  )}
                 </View>
               </View>
               <View className="flex-1">
@@ -255,41 +300,68 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
               Subtasks ({completedSubtasks}/{subtasks.length})
             </ApText>
             {subtasks.map((subtask: Subtask) => (
-              <TouchableOpacity
-                key={subtask.id}
-                onPress={() => toggleSubtask(subtask)}
-                className="flex-row items-center py-2"
-              >
-                <View
-                  className="w-[22px] h-[22px] rounded-md items-center justify-center mr-2"
-                  style={{
-                    borderWidth: 2,
-                    borderColor: subtask.completed
-                      ? ApTheme.Color.success
-                      : ApTheme.Color.border.light,
-                    backgroundColor: subtask.completed
-                      ? ApTheme.Color.success
-                      : ApTheme.Color.transparent,
-                  }}
+              <View key={subtask.id} className="flex-row items-center py-2">
+                <TouchableOpacity
+                  onPress={() => toggleSubtask(subtask)}
+                  className="flex-row items-center flex-1"
+                  disabled={updatingSubtaskId === subtask.id}
                 >
-                  {subtask.completed && (
-                    <Icon name="check" size={14} color={ApTheme.Color.white} />
-                  )}
-                </View>
-                <ApText
-                  size="sm"
-                  style={{
-                    textDecorationLine: subtask.completed
-                      ? 'line-through'
-                      : 'none',
-                    color: subtask.completed
-                      ? ApTheme.Color.text.muted
-                      : colors.text.primary,
-                  }}
+                  <View
+                    className="w-[22px] h-[22px] rounded-md items-center justify-center mr-2"
+                    style={{
+                      borderWidth: 2,
+                      borderColor: subtask.isCompleted
+                        ? ApTheme.Color.success
+                        : ApTheme.Color.border.light,
+                      backgroundColor: subtask.isCompleted
+                        ? ApTheme.Color.success
+                        : ApTheme.Color.transparent,
+                    }}
+                  >
+                    {updatingSubtaskId === subtask.id ? (
+                      <ActivityIndicator
+                        size="small"
+                        color={ApTheme.Color.primary}
+                      />
+                    ) : subtask.isCompleted ? (
+                      <Icon
+                        name="check"
+                        size={14}
+                        color={ApTheme.Color.white}
+                      />
+                    ) : null}
+                  </View>
+                  <ApText
+                    size="sm"
+                    className="flex-1"
+                    style={{
+                      textDecorationLine: subtask.isCompleted
+                        ? 'line-through'
+                        : 'none',
+                      color: subtask.isCompleted
+                        ? ApTheme.Color.text.muted
+                        : colors.text.primary,
+                    }}
+                  >
+                    {subtask.title}
+                  </ApText>
+                </TouchableOpacity>
+                <ApConfirm
+                  title="Delete Subtask"
+                  message={`Are you sure you want to delete "${subtask.title}"?`}
+                  confirmText="Delete"
+                  onConfirm={() => handleDeleteSubtask(subtask.id)}
+                  disabled={updatingSubtaskId === subtask.id}
                 >
-                  {subtask.title}
-                </ApText>
-              </TouchableOpacity>
+                  <View className="p-2">
+                    <Icon
+                      name="trash-2"
+                      size={16}
+                      color={ApTheme.Color.danger}
+                    />
+                  </View>
+                </ApConfirm>
+              </View>
             ))}
             <View className="flex-row items-center mt-2">
               <TextInput
@@ -303,13 +375,21 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                 }}
                 onSubmitEditing={handleAddSubtask}
               />
-              <TouchableOpacity onPress={handleAddSubtask} className="ml-2">
-                <Icon
-                  name="plus-circle"
-                  size={24}
+              {createSubtaskMutation.isPending ? (
+                <ActivityIndicator
+                  size="small"
                   color={ApTheme.Color.primary}
+                  style={{ marginLeft: 8 }}
                 />
-              </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={handleAddSubtask} className="ml-2">
+                  <Icon
+                    name="plus-circle"
+                    size={24}
+                    color={ApTheme.Color.primary}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -441,11 +521,19 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
   );
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
+  const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
 
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
+
+  const selectedProject = projects.find(p => p.id === selectedProjectId);
+  const { data: teamMembers = [] } = useTeamMembers(
+    selectedProject?.teamId || '',
+  );
+
   const { data: existingTask, isLoading: taskLoading } = useTask(taskId || '');
   const createTaskMutation = useCreateTask();
   const updateTaskMutation = useUpdateTask();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (isEditing && existingTask) {
@@ -456,6 +544,7 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
         existingTask.dueDate ? existingTask.dueDate.split('T')[0] : '',
       );
       setPriority(existingTask.priority);
+      setAssigneeIds(existingTask.assignees?.map((a: any) => a.id) || []);
     }
   }, [isEditing, existingTask]);
 
@@ -467,12 +556,12 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
 
   const handleSubmit = () => {
     if (!title.trim()) {
-      Alert.alert('Error', 'Please enter a task title');
+      showToast('Please enter a task title', 'error');
       return;
     }
 
     if (!selectedProjectId) {
-      Alert.alert('Error', 'Please select a project');
+      showToast('Please select a project', 'error');
       return;
     }
 
@@ -485,18 +574,18 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
             description,
             priority,
             dueDate: dueDate || undefined,
+            assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
           },
         },
         {
           onSuccess: () => {
-            Alert.alert('Success', 'Task updated successfully', [
-              { text: 'OK', onPress: () => router.back() },
-            ]);
+            showToast('Task updated successfully', 'success');
+            router.back();
           },
           onError: (error: any) => {
             const message =
               error.response?.data?.message || 'Failed to update task';
-            Alert.alert('Error', message);
+            showToast(message, 'error');
           },
         },
       );
@@ -508,17 +597,17 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
           projectId: selectedProjectId,
           priority,
           dueDate: dueDate || undefined,
+          assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
         },
         {
           onSuccess: () => {
-            Alert.alert('Success', 'Task created successfully', [
-              { text: 'OK', onPress: () => router.back() },
-            ]);
+            showToast('Task created successfully', 'success');
+            router.back();
           },
           onError: (error: any) => {
             const message =
               error.response?.data?.message || 'Failed to create task';
-            Alert.alert('Error', message);
+            showToast(message, 'error');
           },
         },
       );
@@ -585,7 +674,7 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
         <View className="w-6" />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ApScrollView showsVerticalScrollIndicator={false}>
         <ApCard padding="lg" className="mt-4">
           <ApInput
             label="Task Title"
@@ -654,12 +743,11 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
             </View>
           )}
 
-          <ApInput
+          <ApDatePicker
             label="Due Date"
-            placeholder="YYYY-MM-DD"
+            placeholder="Select due date"
             value={dueDate}
-            onChangeText={setDueDate}
-            rightIcon="calendar"
+            onChange={setDueDate}
           />
 
           <View className="mb-6">
@@ -678,6 +766,88 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
             </View>
           </View>
 
+          {selectedProjectId && (
+            <ApSelect
+              label="Assignees"
+              placeholder="Select assignees"
+              searchPlaceholder="Search members..."
+              searchable
+              multiple
+              options={teamMembers}
+              value={assigneeIds}
+              onChange={setAssigneeIds}
+              getValue={(item: any) => item.userId}
+              getLabel={(item: any) => item.user?.name || 'Unknown'}
+              renderItem={(item: any, isSelected: boolean) => (
+                <View className="flex-row items-center">
+                  <ApAvatar
+                    source={item.user?.avatar}
+                    name={item.user?.name || '?'}
+                    size="xs"
+                    className="mr-2"
+                  />
+                  <ApText
+                    size="md"
+                    weight={isSelected ? 'semibold' : 'normal'}
+                    color={
+                      isSelected ? ApTheme.Color.primary : colors.text.primary
+                    }
+                  >
+                    {item.user?.name || 'Unknown'}
+                  </ApText>
+                </View>
+              )}
+              renderTrigger={(selectedItems: any) => {
+                const items = Array.isArray(selectedItems) ? selectedItems : [];
+                return (
+                  <View className="flex-row items-center flex-1">
+                    {items.length > 0 ? (
+                      <View
+                        className="flex-row items-center flex-wrap"
+                        style={{ gap: 4 }}
+                      >
+                        {items.slice(0, 3).map((item: any) => (
+                          <ApAvatar
+                            key={item.id}
+                            source={item.user?.avatar}
+                            name={item.user?.name || '?'}
+                            size="xs"
+                          />
+                        ))}
+                        {items.length > 3 && (
+                          <View className="w-5 h-5 rounded-full items-center justify-center bg-gray-200">
+                            <ApText size="xs">+{items.length - 3}</ApText>
+                          </View>
+                        )}
+                        <ApText
+                          size="md"
+                          className="ml-2"
+                          color={colors.text.primary}
+                        >
+                          {items.length === 1
+                            ? items[0].user?.name
+                            : `${items.length} selected`}
+                        </ApText>
+                      </View>
+                    ) : (
+                      <>
+                        <Icon
+                          name="users"
+                          size={16}
+                          color={colors.text.muted}
+                          style={{ marginRight: 8 }}
+                        />
+                        <ApText size="md" color={colors.text.muted}>
+                          Select assignees
+                        </ApText>
+                      </>
+                    )}
+                  </View>
+                );
+              }}
+            />
+          )}
+
           <ApButton
             title={isEditing ? 'Update Task' : 'Create Task'}
             onPress={handleSubmit}
@@ -685,7 +855,7 @@ export const CreateTaskScreen: React.FC<CreateTaskScreenProps> = ({
             disabled={projects.length === 0 && !isEditing}
           />
         </ApCard>
-      </ScrollView>
+      </ApScrollView>
     </ApScreen>
   );
 };

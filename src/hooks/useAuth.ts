@@ -30,6 +30,24 @@ export const useRegister = () => {
   });
 };
 
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: (email: string) => authService.forgotPassword(email),
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: ({
+      token,
+      newPassword,
+    }: {
+      token: string;
+      newPassword: string;
+    }) => authService.resetPassword(token, newPassword),
+  });
+};
+
 export const useProfile = () => {
   const { isAuthenticated } = useAuthStore();
 
@@ -59,8 +77,13 @@ export const useLogout = () => {
 
   return () => {
     logout();
-    AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-    queryClient.clear();
+    return AsyncStorage.removeItem(AUTH_TOKEN_KEY)
+      .catch(err => {
+        console.error('Failed to remove token:', err);
+      })
+      .then(() => {
+        queryClient.clear();
+      });
   };
 };
 

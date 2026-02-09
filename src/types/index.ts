@@ -1,3 +1,8 @@
+export enum ProjectStatus {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  ARCHIVED = 'ARCHIVED',
+}
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'UNDER_REVIEW' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 export type TeamRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
@@ -6,6 +11,8 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
   username: string;
   jobTitle: string | null;
   avatar: string | null;
@@ -37,6 +44,7 @@ export interface Project {
   name: string;
   description: string | null;
   teamId: string;
+  status: ProjectStatus;
   createdById: string;
   createdAt: string;
   updatedAt: string;
@@ -53,22 +61,21 @@ export interface Task {
   dueDate: string | null;
   startDate: string | null;
   projectId: string;
-  assigneeId: string | null;
   createdById: string;
   createdAt: string;
   updatedAt: string;
   project?: Project;
-  assignee?: User;
+  assignees?: User[];
   subtasks?: Subtask[];
 }
 
 export interface Subtask {
   id: string;
   title: string;
-  completed: boolean;
+  isCompleted: boolean;
   taskId: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface Comment {
@@ -100,7 +107,8 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
 }
 
@@ -118,6 +126,7 @@ export interface CreateProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+  status?: ProjectStatus;
 }
 
 export interface CreateTaskRequest {
@@ -127,7 +136,7 @@ export interface CreateTaskRequest {
   dueDate?: string;
   startDate?: string;
   projectId: string;
-  assigneeId?: string;
+  assigneeIds?: string[];
 }
 
 export interface UpdateTaskRequest {
@@ -136,7 +145,7 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority;
   dueDate?: string;
   startDate?: string;
-  assigneeId?: string;
+  assigneeIds?: string[];
 }
 
 export interface UpdateTaskStatusRequest {
@@ -149,7 +158,7 @@ export interface CreateSubtaskRequest {
 
 export interface UpdateSubtaskRequest {
   title?: string;
-  completed?: boolean;
+  isCompleted?: boolean;
 }
 
 export interface CreateCommentRequest {
@@ -188,6 +197,8 @@ export interface UpdateMemberRoleRequest {
 
 export interface ProjectQueryParams {
   teamId?: string;
+  status?: ProjectStatus;
+  search?: string;
 }
 
 export interface TaskQueryParams {

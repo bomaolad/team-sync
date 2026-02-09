@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import {
   ApTheme,
   ApText,
@@ -19,6 +18,9 @@ import {
   ApFAB,
   ApInput,
   ApButton,
+  useToast,
+  ApModal,
+  ApScrollView,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
 import {
@@ -30,8 +32,11 @@ import {
   useTeams,
   useCreateProject,
   useUpdateProject,
+  useDeleteProject,
+  useProfile,
+  useTeamMembers,
 } from '@/src/hooks';
-import { Project, Task, Team } from '@/src/types';
+import { Project, Task, Team, ProjectStatus } from '@/src/types';
 import {
   FilterType,
   ViewMode,
@@ -41,13 +46,53 @@ import {
   getProjectStats,
 } from './model';
 
+// customized hook for Debouncing
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export const ProjectsListScreen = () => {
   const { colors } = useAppTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const debouncedSearch = useDebounce(searchQuery, 500);
 
-  const { data: projects = [], isLoading: projectsLoading } = useProjects();
-  const { data: allTasks = [] } = useTasks();
+  const getStatusFilter = () => {
+    switch (activeFilter) {
+      case 'active':
+        return ProjectStatus.ACTIVE;
+      case 'completed':
+        return ProjectStatus.COMPLETED;
+      default:
+        return undefined;
+    }
+  };
+
+  const {
+    data: projects = [],
+    isLoading: projectsLoading,
+    refetch: refetchProjects,
+  } = useProjects({
+    search: debouncedSearch,
+    status: getStatusFilter(),
+  });
+  const { data: allTasks = [], refetch: refetchTasks } = useTasks();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchProjects();
+      refetchTasks();
+    }, [refetchProjects, refetchTasks]),
+  );
 
   const filters: { key: FilterType; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -55,21 +100,8 @@ export const ProjectsListScreen = () => {
     { key: 'completed', label: 'Completed' },
   ];
 
-  const filteredProjects = projects.filter((project: Project) => {
-    const matchesSearch = project.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-
-    const stats = getProjectStats(project.id, allTasks);
-    const isCompleted = stats.progress === 100 && stats.total > 0;
-
-    const matchesFilter =
-      activeFilter === 'all' ||
-      (activeFilter === 'active' && !isCompleted) ||
-      (activeFilter === 'completed' && isCompleted);
-
-    return matchesSearch && matchesFilter;
-  });
+  // No frontend filtering needed anymore
+  const filteredProjects = projects;
 
   const renderProjectCard = ({ item }: { item: Project }) => {
     const stats = getProjectStats(item.id, allTasks);
@@ -127,22 +159,9 @@ export const ProjectsListScreen = () => {
     );
   };
 
-  if (projectsLoading) {
-    return (
-      <ApScreen>
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={ApTheme.Color.primary} />
-          <ApText size="md" color={colors.text.secondary} className="mt-4">
-            Loading projects...
-          </ApText>
-        </View>
-      </ApScreen>
-    );
-  }
-
   return (
     <ApScreen>
-      <View className="pt-4">
+      <View className="pt-4 flex-1">
         <ApText size="xl" weight="bold" className="mb-4">
           Projects
         </ApText>
@@ -182,25 +201,38 @@ export const ProjectsListScreen = () => {
           ))}
         </View>
 
-        <FlatList
-          data={filteredProjects}
-          renderItem={renderProjectCard}
-          keyExtractor={item => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          ListEmptyComponent={
-            <View className="items-center pt-16">
-              <Icon name="folder" size={48} color={ApTheme.Color.text.muted} />
-              <ApText
-                size="md"
-                color={ApTheme.Color.text.muted}
-                className="mt-4"
-              >
-                No projects found
-              </ApText>
-            </View>
-          }
-        />
+        {projectsLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={ApTheme.Color.primary} />
+            <ApText size="md" color={colors.text.secondary} className="mt-4">
+              Loading projects...
+            </ApText>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredProjects}
+            renderItem={renderProjectCard}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={
+              <View className="items-center pt-16">
+                <Icon
+                  name="folder"
+                  size={48}
+                  color={ApTheme.Color.text.muted}
+                />
+                <ApText
+                  size="md"
+                  color={ApTheme.Color.text.muted}
+                  className="mt-4"
+                >
+                  No projects found
+                </ApText>
+              </View>
+            }
+          />
+        )}
       </View>
 
       <ApFAB icon="plus" onPress={() => router.push('/projects/create')} />
@@ -218,13 +250,61 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   const { colors } = useAppTheme();
   const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-  const { data: project, isLoading: projectLoading } = useProject(
-    projectId || '',
-  );
-  const { data: allTasks = [], isLoading: tasksLoading } = useTasks({
+  const {
+    data: project,
+    isLoading: projectLoading,
+    refetch: refetchProject,
+  } = useProject(projectId || '');
+  const {
+    data: allTasks = [],
+    isLoading: tasksLoading,
+    refetch: refetchTasks,
+  } = useTasks({
     projectId,
   });
-  const { data: progress } = useProjectProgress(projectId || '');
+  const { data: progress, refetch: refetchProgress } = useProjectProgress(
+    projectId || '',
+  );
+  const { data: userProfile } = useProfile();
+  const { data: teamMembers } = useTeamMembers(project?.teamId || '');
+  const deleteProjectMutation = useDeleteProject();
+  const updateProjectMutation = useUpdateProject();
+  const { showToast } = useToast();
+  const [showMenu, setShowMenu] = useState(false);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    visible: boolean;
+    title: string;
+    description: string;
+    variant: 'primary' | 'danger';
+    confirmText: string;
+    onConfirm: () => void;
+  }>({
+    visible: false,
+    title: '',
+    description: '',
+    variant: 'primary',
+    confirmText: 'Confirm',
+    onConfirm: () => {},
+  });
+
+  const currentUserRole = React.useMemo(() => {
+    if (!userProfile || !teamMembers) return null;
+    const member = teamMembers.find((m: any) => m.userId === userProfile.id);
+    return member?.role;
+  }, [userProfile, teamMembers]);
+
+  const canManage = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
+
+  useFocusEffect(
+    useCallback(() => {
+      if (projectId) {
+        refetchProject();
+        refetchTasks();
+        refetchProgress();
+      }
+    }, [projectId, refetchProject, refetchTasks, refetchProgress]),
+  );
 
   const tasks = allTasks.filter((t: Task) => t.projectId === projectId);
 
@@ -242,7 +322,26 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         {task.title}
       </ApText>
       <View className="flex-row justify-between items-center mt-2">
-        <ApAvatar name={task.assignee?.name || 'Unassigned'} size="xs" />
+        <View className="flex-row items-center">
+          {task.assignees && task.assignees.length > 0 ? (
+            task.assignees.map((assignee, index) => (
+              <View
+                key={assignee.id}
+                style={{
+                  marginLeft: index > 0 ? -10 : 0,
+                  zIndex: 50 - index,
+                  borderWidth: 2,
+                  borderColor: ApTheme.Color.white,
+                  borderRadius: 999,
+                }}
+              >
+                <ApAvatar name={assignee.name} size="xs" />
+              </View>
+            ))
+          ) : (
+            <ApAvatar name="Unassigned" size="xs" />
+          )}
+        </View>
         <ApBadge
           priority={mapPriority(task.priority)}
           label={task.priority.toLowerCase()}
@@ -291,7 +390,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
   );
 
   const renderBoardView = () => (
-    <ScrollView
+    <ApScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingRight: 16 }}
@@ -337,7 +436,7 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
           </View>
         );
       })}
-    </ScrollView>
+    </ApScrollView>
   );
 
   const isLoading = projectLoading || tasksLoading;
@@ -358,22 +457,226 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <Icon name="arrow-left" size={24} color={colors.text.primary} />
         </TouchableOpacity>
-        <ApText size="lg" weight="bold" className="flex-1" numberOfLines={1}>
-          {project?.name || 'Project'}
-        </ApText>
-        <TouchableOpacity>
-          <Icon name="more-vertical" size={24} color={colors.text.primary} />
-        </TouchableOpacity>
+        <View className="flex-1 mr-4">
+          <ApText size="lg" weight="bold" numberOfLines={1}>
+            {project?.name || 'Project'}
+          </ApText>
+          <View className="flex-row items-center mt-1">
+            <ApBadge
+              label={
+                project?.status === ProjectStatus.COMPLETED
+                  ? 'Completed'
+                  : 'Active'
+              }
+              status={
+                project?.status === ProjectStatus.COMPLETED
+                  ? 'done'
+                  : 'inProgress'
+              }
+              size="sm"
+            />
+          </View>
+        </View>
+
+        {canManage && (
+          <TouchableOpacity onPress={() => setShowMenu(true)}>
+            <Icon name="more-vertical" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+        )}
       </View>
+
+      <ApModal
+        visible={showMenu}
+        onClose={() => setShowMenu(false)}
+        position="bottom"
+      >
+        <View className="pb-4">
+          <ApText size="lg" weight="bold" className="mb-4">
+            Project Actions
+          </ApText>
+
+          {project?.status !== ProjectStatus.COMPLETED && (
+            <TouchableOpacity
+              onPress={() => {
+                setShowMenu(false);
+                setConfirmModal({
+                  visible: true,
+                  title: 'Mark as Completed',
+                  description:
+                    'Are you sure you want to mark this project as completed?',
+                  variant: 'primary',
+                  confirmText: 'Confirm',
+                  onConfirm: () => {
+                    if (!projectId) return;
+                    updateProjectMutation.mutate(
+                      {
+                        id: projectId,
+                        data: { status: ProjectStatus.COMPLETED },
+                      },
+                      {
+                        onSuccess: () => {
+                          showToast('Project marked as completed', 'success');
+                          refetchProject();
+                        },
+                        onError: () => {
+                          showToast('Failed to update project status', 'error');
+                        },
+                      },
+                    );
+                  },
+                });
+              }}
+              className="flex-row items-center py-3 border-b"
+              style={{ borderColor: ApTheme.Color.border.light }}
+            >
+              <Icon
+                name="check-circle"
+                size={20}
+                color={ApTheme.Color.success}
+                style={{ marginRight: 12 }}
+              />
+              <ApText size="md" color={colors.text.primary}>
+                Mark as Completed
+              </ApText>
+            </TouchableOpacity>
+          )}
+
+          {project?.status === ProjectStatus.COMPLETED && (
+            <TouchableOpacity
+              onPress={() => {
+                setShowMenu(false);
+                setConfirmModal({
+                  visible: true,
+                  title: 'Mark as Active',
+                  description:
+                    'Are you sure you want to mark this project as active?',
+                  variant: 'primary',
+                  confirmText: 'Confirm',
+                  onConfirm: () => {
+                    if (!projectId) return;
+                    updateProjectMutation.mutate(
+                      {
+                        id: projectId,
+                        data: { status: ProjectStatus.ACTIVE },
+                      },
+                      {
+                        onSuccess: () => {
+                          showToast('Project marked as active', 'success');
+                          refetchProject();
+                        },
+                        onError: () => {
+                          showToast('Failed to update project status', 'error');
+                        },
+                      },
+                    );
+                  },
+                });
+              }}
+              className="flex-row items-center py-3 border-b"
+              style={{ borderColor: ApTheme.Color.border.light }}
+            >
+              <Icon
+                name="play-circle"
+                size={20}
+                color={ApTheme.Color.primary}
+                style={{ marginRight: 12 }}
+              />
+              <ApText size="md" color={colors.text.primary}>
+                Mark as Active
+              </ApText>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            onPress={() => {
+              setShowMenu(false);
+              router.push(`/projects/create?projectId=${projectId}`);
+            }}
+            className="flex-row items-center py-3 border-b"
+            style={{ borderColor: ApTheme.Color.border.light }}
+          >
+            <Icon
+              name="edit-2"
+              size={20}
+              color={colors.text.primary}
+              style={{ marginRight: 12 }}
+            />
+            <ApText size="md" color={colors.text.primary}>
+              Edit Project
+            </ApText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setShowMenu(false);
+              setConfirmModal({
+                visible: true,
+                title: 'Delete Project',
+                description:
+                  'Are you sure you want to delete this project? This action cannot be undone.',
+                variant: 'danger',
+                confirmText: 'Delete',
+                onConfirm: () => {
+                  if (!projectId) return;
+                  deleteProjectMutation.mutate(projectId, {
+                    onSuccess: () => {
+                      showToast('Project deleted successfully', 'success');
+                      router.replace('/(tabs)/projects');
+                    },
+                    onError: () => {
+                      showToast('Failed to delete project', 'error');
+                    },
+                  });
+                },
+              });
+            }}
+            className="flex-row items-center py-3 mt-2"
+          >
+            <Icon
+              name="trash-2"
+              size={20}
+              color={ApTheme.Color.danger}
+              style={{ marginRight: 12 }}
+            />
+            <ApText size="md" color={ApTheme.Color.danger}>
+              Delete Project
+            </ApText>
+          </TouchableOpacity>
+        </View>
+      </ApModal>
 
       {progress && (
         <View className="flex-row mb-4">
           <View className="flex-1 items-center">
-            <ApText size="lg" weight="bold" color={ApTheme.Color.primary}>
-              {progress.percentage || 0}%
+            <ApText size="lg" weight="bold" color={colors.text.primary}>
+              {progress.total || 0}
             </ApText>
             <ApText size="xs" color={colors.text.secondary}>
-              Complete
+              Total
+            </ApText>
+          </View>
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={colors.text.secondary}>
+              {progress.todo || 0}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              To Do
+            </ApText>
+          </View>
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={ApTheme.Color.warning}>
+              {progress.inProgress || 0}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              In Pro
+            </ApText>
+          </View>
+          <View className="flex-1 items-center">
+            <ApText size="lg" weight="bold" color={ApTheme.Color.primary}>
+              {progress.underReview || 0}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              Review
             </ApText>
           </View>
           <View className="flex-1 items-center">
@@ -385,11 +688,11 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
             </ApText>
           </View>
           <View className="flex-1 items-center">
-            <ApText size="lg" weight="bold" color={ApTheme.Color.warning}>
-              {progress.inProgress || 0}
+            <ApText size="lg" weight="bold" color={ApTheme.Color.success}>
+              {progress.percentage || 0}%
             </ApText>
             <ApText size="xs" color={colors.text.secondary}>
-              In Progress
+              Complete
             </ApText>
           </View>
         </View>
@@ -453,6 +756,30 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
         icon="plus"
         onPress={() => router.push(`/tasks/create?projectId=${projectId}`)}
       />
+
+      <ApModal
+        visible={confirmModal.visible}
+        onClose={() => setConfirmModal(prev => ({ ...prev, visible: false }))}
+        title={confirmModal.title}
+        description={confirmModal.description}
+        actions={[
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () =>
+              setConfirmModal(prev => ({ ...prev, visible: false })),
+          },
+          {
+            text: confirmModal.confirmText,
+            style:
+              confirmModal.variant === 'danger' ? 'destructive' : 'default',
+            onPress: () => {
+              setConfirmModal(prev => ({ ...prev, visible: false }));
+              confirmModal.onConfirm();
+            },
+          },
+        ]}
+      />
     </ApScreen>
   );
 };
@@ -470,6 +797,9 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+  const [projectStatus, setStatus] = useState<ProjectStatus>(
+    ProjectStatus.ACTIVE,
+  );
 
   const { data: teams = [], isLoading: teamsLoading } = useTeams();
   const { data: existingProject, isLoading: projectLoading } = useProject(
@@ -477,12 +807,14 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
   );
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (isEditing && existingProject) {
       setName(existingProject.name);
       setDescription(existingProject.description || '');
       setSelectedTeamId(existingProject.teamId);
+      setStatus(existingProject.status || ProjectStatus.ACTIVE);
     }
   }, [isEditing, existingProject]);
 
@@ -494,12 +826,12 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
 
   const handleSubmit = () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a project name');
+      showToast('Please enter a project name', 'error');
       return;
     }
 
     if (!selectedTeamId) {
-      Alert.alert('Error', 'Please select a team');
+      showToast('Please select a team', 'error');
       return;
     }
 
@@ -507,18 +839,17 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
       updateProjectMutation.mutate(
         {
           id: projectId,
-          data: { name, description },
+          data: { name, description, status: projectStatus },
         },
         {
           onSuccess: () => {
-            Alert.alert('Success', 'Project updated successfully', [
-              { text: 'OK', onPress: () => router.back() },
-            ]);
+            showToast('Project updated successfully', 'success');
+            router.back();
           },
           onError: (error: any) => {
             const message =
               error.response?.data?.message || 'Failed to update project';
-            Alert.alert('Error', message);
+            showToast(message, 'error');
           },
         },
       );
@@ -531,14 +862,13 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
         },
         {
           onSuccess: () => {
-            Alert.alert('Success', 'Project created successfully', [
-              { text: 'OK', onPress: () => router.back() },
-            ]);
+            showToast('Project created successfully', 'success');
+            router.back();
           },
           onError: (error: any) => {
             const message =
               error.response?.data?.message || 'Failed to create project';
-            Alert.alert('Error', message);
+            showToast(message, 'error');
           },
         },
       );
@@ -571,7 +901,7 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
         <View className="w-6" />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ApScrollView showsVerticalScrollIndicator={false}>
         <ApCard padding="lg" className="mt-4">
           <ApInput
             label="Project Name"
@@ -589,6 +919,46 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
             numberOfLines={4}
             style={{ height: 100, textAlignVertical: 'top' }}
           />
+
+          {isEditing && (
+            <View className="mb-4">
+              <ApText
+                size="sm"
+                weight="medium"
+                color={colors.text.secondary}
+                className="mb-2"
+              >
+                Status
+              </ApText>
+              <View className="flex-row items-center">
+                {Object.values(ProjectStatus).map(status => (
+                  <TouchableOpacity
+                    key={status}
+                    onPress={() => setStatus(status)}
+                    className="py-2 px-4 rounded-full mr-2"
+                    style={{
+                      backgroundColor:
+                        projectStatus === status
+                          ? ApTheme.Color.primary
+                          : ApTheme.Color.border.light,
+                    }}
+                  >
+                    <ApText
+                      size="sm"
+                      weight="medium"
+                      color={
+                        projectStatus === status
+                          ? ApTheme.Color.white
+                          : colors.text.secondary
+                      }
+                    >
+                      {status}
+                    </ApText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
           {!isEditing && (
             <View className="mb-6">
@@ -647,7 +1017,7 @@ export const CreateProjectScreen: React.FC<CreateProjectScreenProps> = ({
             disabled={teams.length === 0 && !isEditing}
           />
         </ApCard>
-      </ScrollView>
+      </ApScrollView>
     </ApScreen>
   );
 };

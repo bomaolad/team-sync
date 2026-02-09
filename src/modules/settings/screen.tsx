@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, TouchableOpacity, Switch, Alert, Platform } from 'react-native';
 import { router } from 'expo-router';
 import {
   ApTheme,
@@ -8,6 +8,7 @@ import {
   ApScrollView,
   ApCard,
   ApAvatar,
+  ApModal,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
 import { useAppTheme, useLogout } from '@/src/hooks';
@@ -23,21 +24,10 @@ export const SettingsScreen = () => {
     comments: true,
     recheckAlerts: true,
   });
-
-  const lastSynced = '2 minutes ago';
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        style: 'destructive',
-        onPress: () => {
-          logout();
-          router.replace('/signin');
-        },
-      },
-    ]);
+    setLogoutModalVisible(true);
   };
 
   const SettingRow = ({
@@ -109,7 +99,9 @@ export const SettingsScreen = () => {
                 {user?.email}
               </ApText>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/settings/edit-profile')}
+            >
               <Icon name="edit-2" size={20} color={ApTheme.Color.primary} />
             </TouchableOpacity>
           </View>
@@ -181,34 +173,6 @@ export const SettingsScreen = () => {
           color={colors.text.secondary}
           className="mb-2"
         >
-          SYNC
-        </ApText>
-        <ApCard padding="sm" className="mb-6">
-          <View className="flex-row items-center py-4">
-            <View
-              className="w-9 h-9 rounded-xl items-center justify-center mr-4"
-              style={{ backgroundColor: ApTheme.Color.success + '15' }}
-            >
-              <Icon name="cloud" size={18} color={ApTheme.Color.success} />
-            </View>
-            <View className="flex-1">
-              <ApText size="md">Sync Status</ApText>
-              <ApText size="xs" color={ApTheme.Color.success}>
-                Last synced: {lastSynced}
-              </ApText>
-            </View>
-            <TouchableOpacity>
-              <Icon name="refresh-cw" size={20} color={ApTheme.Color.primary} />
-            </TouchableOpacity>
-          </View>
-        </ApCard>
-
-        <ApText
-          size="sm"
-          weight="semibold"
-          color={colors.text.secondary}
-          className="mb-2"
-        >
           ABOUT
         </ApText>
         <ApCard padding="sm" className="mb-6">
@@ -246,6 +210,35 @@ export const SettingsScreen = () => {
             Logout
           </ApText>
         </TouchableOpacity>
+        <ApModal
+          visible={logoutModalVisible}
+          onClose={() => setLogoutModalVisible(false)}
+          title="Logout"
+          description="Are you sure you want to logout?"
+          actions={[
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: () => setLogoutModalVisible(false),
+            },
+            {
+              text: 'Logout',
+              style: 'destructive',
+              onPress: () => {
+                setLogoutModalVisible(false);
+                console.log('Attempting logout...');
+                logout()
+                  .then(() => {
+                    console.log('Logout successful, navigating to /signin');
+                    router.replace('/signin');
+                  })
+                  .catch(error => {
+                    console.error('Logout failed:', error);
+                  });
+              },
+            },
+          ]}
+        />
       </ApScrollView>
     </ApScreen>
   );

@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -14,9 +13,15 @@ import {
   ApScrollView,
   ApButton,
   ApInput,
+  useToast,
 } from '@/src/components';
 import Icon from '@expo/vector-icons/Feather';
-import { useAppTheme, useLogin, useRegister } from '@/src/hooks';
+import {
+  useAppTheme,
+  useLogin,
+  useRegister,
+  useForgotPassword,
+} from '@/src/hooks';
 
 export const LoginScreen = () => {
   const { colors } = useAppTheme();
@@ -27,6 +32,7 @@ export const LoginScreen = () => {
   );
 
   const loginMutation = useLogin();
+  const { showToast } = useToast();
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -53,13 +59,14 @@ export const LoginScreen = () => {
     loginMutation.mutate(
       { email, password },
       {
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+          showToast(response.message, 'success');
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
           const message =
             error.response?.data?.message || 'Login failed. Please try again.';
-          Alert.alert('Login Failed', message);
+          showToast(message, 'error');
         },
       },
     );
@@ -146,16 +153,6 @@ export const LoginScreen = () => {
               />
             </View>
 
-            <ApButton
-              title="Continue with Google"
-              variant="outline"
-              onPress={handleGoogleLogin}
-              fullWidth
-              icon={
-                <Icon name="chrome" size={20} color={ApTheme.Color.primary} />
-              }
-            />
-
             <View className="flex-row justify-center mt-8">
               <ApText size="md" color={colors.text.secondary}>
                 Don't have an account?{' '}
@@ -180,7 +177,8 @@ export const LoginScreen = () => {
 export const SignUpScreen = () => {
   const { colors } = useAppTheme();
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     username: '',
     email: '',
     jobTitle: '',
@@ -191,6 +189,7 @@ export const SignUpScreen = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const registerMutation = useRegister();
+  const { showToast } = useToast();
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -202,8 +201,12 @@ export const SignUpScreen = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
     }
 
     if (!formData.username.trim()) {
@@ -241,20 +244,22 @@ export const SignUpScreen = () => {
 
     registerMutation.mutate(
       {
-        name: formData.fullName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         username: formData.username,
         email: formData.email,
         password: formData.password,
       },
       {
-        onSuccess: () => {
+        onSuccess: (response: any) => {
+          showToast(response.message, 'success');
           router.replace('/(tabs)');
         },
         onError: (error: any) => {
           const message =
             error.response?.data?.message ||
             'Registration failed. Please try again.';
-          Alert.alert('Registration Failed', message);
+          showToast(message, 'error');
         },
       },
     );
@@ -285,12 +290,21 @@ export const SignUpScreen = () => {
             </ApText>
 
             <ApInput
-              label="Full Name"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChangeText={text => updateField('fullName', text)}
+              label="First Name"
+              placeholder="Enter your first name"
+              value={formData.firstName}
+              onChangeText={text => updateField('firstName', text)}
               leftIcon="user"
-              error={errors.fullName}
+              error={errors.firstName}
+            />
+
+            <ApInput
+              label="Last Name"
+              placeholder="Enter your last name"
+              value={formData.lastName}
+              onChangeText={text => updateField('lastName', text)}
+              leftIcon="user"
+              error={errors.lastName}
             />
 
             <ApInput
@@ -426,9 +440,12 @@ export const SignUpScreen = () => {
 export const ForgotPasswordScreen = () => {
   const { colors } = useAppTheme();
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const forgotPasswordMutation = useForgotPassword();
+  const { showToast } = useToast();
 
   const handleSendResetLink = () => {
     if (!email) {
@@ -441,12 +458,20 @@ export const ForgotPasswordScreen = () => {
     }
 
     setError('');
-    setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-    }, 1500);
+    forgotPasswordMutation.mutate(email, {
+      onSuccess: (response: any) => {
+        setSuccessMessage(response.message);
+        setSuccess(true);
+        showToast(response.message, 'success');
+      },
+      onError: (err: any) => {
+        const message =
+          err.response?.data?.message ||
+          'Failed to send reset link. Please try again.';
+        showToast(message, 'error');
+      },
+    });
   };
 
   if (success) {
@@ -537,7 +562,7 @@ export const ForgotPasswordScreen = () => {
             <ApButton
               title="Send Reset Link"
               onPress={handleSendResetLink}
-              loading={loading}
+              loading={forgotPasswordMutation.isPending}
               fullWidth
               className="mt-4"
             />

@@ -4,15 +4,28 @@ import {
   View,
   TouchableWithoutFeedback,
   ModalProps,
+  TouchableOpacity,
 } from 'react-native';
+import { ApText } from './ApText';
+import { ApButton } from './ApButton';
 import { useAppTheme } from '../hooks/useAppTheme';
+
+interface ModalAction {
+  text: string;
+  style?: 'default' | 'cancel' | 'destructive';
+  onPress?: () => void;
+  loading?: boolean;
+}
 
 interface ApModalProps extends Omit<ModalProps, 'visible'> {
   visible: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   position?: 'center' | 'bottom';
   className?: string;
+  title?: string;
+  description?: string;
+  actions?: ModalAction[];
 }
 
 export const ApModal: React.FC<ApModalProps> = ({
@@ -20,6 +33,9 @@ export const ApModal: React.FC<ApModalProps> = ({
   onClose,
   children,
   position = 'center',
+  title,
+  description,
+  actions,
   animationType = 'fade',
   transparent = true,
   ...props
@@ -51,7 +67,60 @@ export const ApModal: React.FC<ApModalProps> = ({
               }`}
               style={{ backgroundColor: colors.surface }}
             >
-              {children}
+              {title || description || actions ? (
+                <View>
+                  {title && (
+                    <ApText
+                      size="lg"
+                      weight="bold"
+                      align="center"
+                      className="mb-2"
+                    >
+                      {title}
+                    </ApText>
+                  )}
+                  {description && (
+                    <ApText
+                      size="md"
+                      color={colors.text.secondary}
+                      align="center"
+                      className="mb-6"
+                    >
+                      {description}
+                    </ApText>
+                  )}
+                  {children}
+                  {actions && actions.length > 0 && (
+                    <View className="flex-row justify-end space-x-3 gap-3 mt-4">
+                      {actions.map((action, index) => (
+                        <View key={index} className="flex-1">
+                          <ApButton
+                            title={action.text}
+                            onPress={() => {
+                              action.onPress?.();
+                              if (!action.loading) {
+                                onClose();
+                              }
+                            }}
+                            variant={
+                              action.style === 'destructive'
+                                ? 'danger'
+                                : action.style === 'cancel'
+                                ? 'outline'
+                                : 'primary'
+                            }
+                            size="md"
+                            loading={action.loading}
+                            fullWidth
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ) : (
+                children
+              )}
             </View>
           </TouchableWithoutFeedback>
         </View>

@@ -2,6 +2,8 @@ export { useAppTheme } from './useAppTheme';
 export {
   useLogin,
   useRegister,
+  useForgotPassword,
+  useResetPassword,
   useProfile,
   useUpdateProfile,
   useLogout,

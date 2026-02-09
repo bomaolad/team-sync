@@ -8,9 +8,10 @@ import {
 } from '@react-navigation/native';
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from 'react-native-paper';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RootNavigator } from './src/navigation';
 import { useAppTheme, useHydrateAuth } from './src/hooks';
 import { queryClient } from './src/services';
+import { RootNavigator } from './src/navigation';
+import { ToastProvider } from './src/components';
 
 const AppContent: React.FC = () => {
   const { isDark, colors } = useAppTheme();
@@ -40,7 +41,9 @@ const AppContent: React.FC = () => {
   return (
     <PaperProvider theme={paperTheme}>
       <NavigationContainer theme={navigationTheme}>
-        <RootNavigator />
+        <ToastProvider>
+          <RootNavigator />
+        </ToastProvider>
       </NavigationContainer>
     </PaperProvider>
   );

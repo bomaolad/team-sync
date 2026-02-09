@@ -9,10 +9,11 @@ import { View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { PaperProvider } from 'react-native-paper';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RootNavigator } from './src/navigation';
 import { queryClient } from './src/services';
 import { useAuthStore } from './src/store/authStore';
 import './global.css';
+import { RootNavigator } from './src/navigation';
+import { ToastProvider } from './src/components';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -82,7 +83,9 @@ const AppContent: React.FC = () => {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <RootNavigator />
+        <ToastProvider>
+          <RootNavigator />
+        </ToastProvider>
       </NavigationContainer>
     </PaperProvider>
   );
