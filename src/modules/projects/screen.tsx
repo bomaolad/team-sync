@@ -46,6 +46,7 @@ import {
   mapPriority,
   getProjectStats,
 } from './model';
+import { formatDateTime } from '@/src/utils';
 
 // customized hook for Debouncing
 function useDebounce<T>(value: T, delay: number): T {
@@ -476,6 +477,9 @@ export const ProjectDetailScreen: React.FC<ProjectDetailScreenProps> = ({
               }
               size="sm"
             />
+            <ApText size="sm" color={colors.text.secondary} className="ml-2">
+              Created: {formatDateTime(project?.createdAt || null)}
+            </ApText>
           </View>
         </View>
 

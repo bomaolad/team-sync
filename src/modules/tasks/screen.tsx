@@ -48,13 +48,8 @@ import {
   Project,
   TeamMember,
 } from '@/src/types';
-import {
-  statusConfig,
-  statusOrder,
-  mapPriority,
-  formatDate,
-  formatTimestamp,
-} from './model';
+import { statusConfig, statusOrder, mapPriority } from './model';
+import { formatDate, formatTimestamp, formatDateTime } from '@/src/utils';
 
 interface TaskDetailScreenProps {
   taskId?: string;
@@ -279,6 +274,14 @@ export const TaskDetailScreen: React.FC<TaskDetailScreenProps> = ({
                 </ApText>
                 <ApText size="sm" weight="medium" className="mt-1">
                   {formatDate(task.dueDate)}
+                </ApText>
+              </View>
+              <View className="flex-1">
+                <ApText size="xs" color={ApTheme.Color.text.muted}>
+                  Created
+                </ApText>
+                <ApText size="sm" weight="medium" className="mt-1">
+                  {formatDateTime(task.createdAt)}
                 </ApText>
               </View>
             </View>

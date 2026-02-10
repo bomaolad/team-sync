@@ -32,6 +32,7 @@ import {
 } from '@/src/hooks';
 import { Team, TeamMember, TeamRole } from '@/src/types';
 import { getRoleBadgeVariant } from './model';
+import { formatDate } from '@/src/utils';
 
 export const TeamListScreen = () => {
   const { colors } = useAppTheme();
@@ -314,7 +315,12 @@ export const TeamListScreen = () => {
           style={{ backgroundColor: ApTheme.Color.primary + '15' }}
         >
           <View className="flex-1 items-center">
-            <ApText size="xxl" weight="bold" color={ApTheme.Color.primary}>
+            <ApText
+              size="md"
+              weight="bold"
+              color={ApTheme.Color.primary}
+              className="text-center"
+            >
               {members.length}
             </ApText>
             <ApText size="sm" color={colors.text.secondary}>
@@ -327,7 +333,7 @@ export const TeamListScreen = () => {
           />
           <View className="flex-1 items-center">
             <ApText
-              size="sm"
+              size="md"
               weight="bold"
               color={ApTheme.Color.primary}
               className="text-center"
@@ -336,6 +342,23 @@ export const TeamListScreen = () => {
             </ApText>
             <ApText size="xs" color={colors.text.secondary}>
               Invite Code
+            </ApText>
+          </View>
+          <View
+            className="w-px mx-4"
+            style={{ backgroundColor: ApTheme.Color.border.light }}
+          />
+          <View className="flex-1 items-center">
+            <ApText
+              size="md"
+              weight="bold"
+              color={ApTheme.Color.primary}
+              className="text-center"
+            >
+              {formatDate(selectedTeam.createdAt)}
+            </ApText>
+            <ApText size="xs" color={colors.text.secondary}>
+              Created
             </ApText>
           </View>
         </View>
